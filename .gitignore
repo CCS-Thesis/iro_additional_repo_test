@@ -1,4 +1,6 @@
-./toBeSplit/*
-./noisereduced/*
-./data/*
-./wtf/*
+/toBeSplit/*
+/noisereduced/*
+/data/*
+/wtf/*
+
+output.csv
