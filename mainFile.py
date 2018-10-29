@@ -128,6 +128,7 @@ def calc_distances(sound_file):
     # C H A N G A B L E  P A R A M E T E R S 
     
     # threshold to detect a bark
+    # this big ass value is because of the output of normalization
     VALUE = 300
     MULTIPLIER = 1000000
     MIN_VAL = VALUE * MULTIPLIER

@@ -138,7 +138,19 @@ for recording in range(len(allData)):
     key = list(current.keys())[recording]
 
     print("-------------------------------------")
-    print(current[key])
+    print("Processing **" + str(key) + "** recording")
+    print("What is the classification for this recording?")
+    print("0 - not aggressive")
+    print("1 - aggressive")
+
+
+    classif = -1
+    while classif not in [0,1]:
+        print("input must only be 0 or 1")
+        try:
+            classif = int(input("Class: "))
+        except Exception as e:
+            continue
     print("-------------------------------------")
 
     # getting the average loudness (for perceptual spread)
@@ -167,6 +179,7 @@ for recording in range(len(allData)):
         length = dataLength/sampleRate
         tempRow['bark_length'] = length
 
+        tempRow['aggressive'] = classif
         allForExport.append(tempRow)
 
 print("-------------------------------------")
@@ -178,7 +191,7 @@ print("-------------------------------------")
 print("-------------------------------------")
 
 with open('output.csv', mode='w', newline='') as csv_file:
-    fieldnames = ['name','perceptual_spread','bark_length']
+    fieldnames = ['name','perceptual_spread','bark_length', 'aggressive']
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
     writer.writeheader()
