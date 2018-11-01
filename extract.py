@@ -13,7 +13,7 @@ from scipy.io.wavfile import read
 
 import os
 import csv
-
+import constants
 
 '''------------------------------------
 FILE READER:
@@ -39,16 +39,55 @@ def get_average_loudness( obj ):
     # getting mean loudness
 
     meanLoudness = 0
-    n = 0
 
     for sequence in range(len(obj)):
         currentSequence = obj[sequence]
         meanLoudness += currentSequence['dbfs']
-        n += 1
         
-    return meanLoudness / n
+    return meanLoudness / len(obj)
 
 
+'''------------------------------------
+AVERAGE INTERBARK INTERVAL OBTAINER:
+    receives data stream and sample rate,
+    returns mean interbark interval
+------------------------------------'''
+def calc_distances(_data, fs):
+    
+    data = _data[0]
+    data_size = len(data)
+    FOCUS_SIZE = int(constants.SECONDS * fs)
+    
+    focuses = []
+    distances = []
+    idx = 0
+    
+    while idx < len(data):
+        if (data[idx] > constants.MIN_VAL):
+            mean_idx = idx + FOCUS_SIZE // 2
+            focuses.append(float(mean_idx) / data_size)
+            if len(focuses) > 1:
+                last_focus = focuses[-2]
+                actual_focus = focuses[-1]
+                distances.append(actual_focus - last_focus)
+            idx += FOCUS_SIZE
+        else:
+            idx += 1
+    
+    mean = 0
+
+    print (focuses)
+    print(len(distances) + 1 , "barks detected")
+
+    for val in distances:
+        mean += val
+    
+    try:
+        mean = mean/len(distances)
+    except ZeroDivisionError as e:
+        mean = 0
+
+    return mean
 
 
 # -----------------------------------------------------------------------------------------------------------------------------------------
@@ -179,7 +218,13 @@ for recording in range(len(allData)):
         length = dataLength/sampleRate
         tempRow['bark_length'] = length
 
+        # calculating interbark interval
+        ibi = calc_distances(currentSequence['data'],currentSequence['sr'])
+        print(ibi)
+        tempRow['interbark_interval'] = ibi
+
         tempRow['aggressive'] = classif
+
         allForExport.append(tempRow)
 
 print("-------------------------------------")
@@ -191,7 +236,7 @@ print("-------------------------------------")
 print("-------------------------------------")
 
 with open('output.csv', mode='w', newline='') as csv_file:
-    fieldnames = ['name','perceptual_spread','bark_length', 'aggressive']
+    fieldnames = ['name','perceptual_spread','bark_length','interbark_interval', 'aggressive']
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
     writer.writeheader()

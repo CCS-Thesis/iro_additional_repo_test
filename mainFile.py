@@ -13,6 +13,8 @@ from scipy.io.wavfile import write
 from os import listdir
 
 from io import BytesIO
+import constants
+
 # http://python-speech-features.readthedocs.io/en/latest/
 # https://github.com/jameslyons/python_speech_features
 # http://practicalcryptography.com/miscellaneous/machine-learning/guide-mel-frequency-cepstral-coefficients-mfccs/#deltas-and-delta-deltas
@@ -20,6 +22,8 @@ from io import BytesIO
 
 # http://dsp.stackexchange.com/search?q=noise+reduction/
 
+# turn to true to see all outputs
+SHOWALL = False
 '''------------------------------------
 FILE READER:
     receives filename,
@@ -123,33 +127,14 @@ def calc_distances(sound_file):
 
     print("data_size",data_size)
     
-
-    # --------------------------------------------------------------------
-    # C H A N G A B L E  P A R A M E T E R S 
     
-    # threshold to detect a bark
-    # this big ass value is because of the output of normalization
-    VALUE = 300
-    MULTIPLIER = 1000000
-    MIN_VAL = VALUE * MULTIPLIER
-
-    # how many indices to skip after detecting a bark (in seconds)
-    SECONDS = 0.25
-    FOCUS_SIZE = int(SECONDS * fs)
-
-    # for when adding barks
+    FOCUS_SIZE = int(constants.SECONDS * fs)
     OFFSET = int(0.5 * fs)
 
-    # seconds until program will record for another bark sequence
-    SECONDS_UNTIL_NEXT_BARK_SEQUENCE = .5
-
-    # END OF CHANGABLE PARAMETERS
-    # --------------------------------------------------------------------
     print("fs",fs)
     print("data",data)
-    print("FOCUS_SIZE",FOCUS_SIZE)
+    print("FOCUS_SIZE", FOCUS_SIZE)
     print("\n")
-
 
     focuses = []
     distances = []
@@ -161,12 +146,7 @@ def calc_distances(sound_file):
     has_barks_inside = False
 
     while idx < len(data):
-        # if(idx==(len(data)-1)):
-        #     print("---------------- A P P E N D E D ----------------")
-        #     print("---------------- end of file ----------------")
-        #     split.append(data[startidx+OFFSET:idx])
-
-        if ((data[idx] > MIN_VAL)):
+        if ((data[idx] > constants.MIN_VAL)):
             print("value",data[idx]) 
             has_barks_inside = True
             mean_idx = idx + FOCUS_SIZE // 2
@@ -189,15 +169,17 @@ def calc_distances(sound_file):
         else:
             dead_air += 1
             idx += 1
-            if (dead_air/fs) > SECONDS_UNTIL_NEXT_BARK_SEQUENCE:
-                print("dead air exceeded ", SECONDS_UNTIL_NEXT_BARK_SEQUENCE)
+            if (dead_air/fs) > constants.SECONDS_UNTIL_NEXT_BARK_SEQUENCE:
+                print("dead air exceeded ", constants.SECONDS_UNTIL_NEXT_BARK_SEQUENCE)
                 if has_barks_inside:
                     split.append(data[startidx:idx])
                 startidx = idx
                 dead_air = 0
                 has_barks_inside = False
+
     # to add the last bark sequence
-    split.append(data[startidx:len(data)])
+    if has_barks_inside:
+        split.append(data[startidx:len(data)])
 
     print (focuses)
     print(len(distances) + 1 , "barks detected")
@@ -206,6 +188,7 @@ def calc_distances(sound_file):
 
     for num in range(len(split)):
         write('data/split-' + fileName + '-' + str(num) + '.wav',fs,split[num])
+
     return distances  
 
 
@@ -217,7 +200,6 @@ def calc_distances(sound_file):
  (AKA MAIN FUNCTION)
 ------------------------------------'''
 
-TARGET_DBFS = -20
 # Noise Reduction
 targetFolder = 'raw'
 
@@ -248,7 +230,10 @@ for s in samples:
 
     y_reduced_centroid_mb, time_trimmed = trim_silence(y_reduced_centroid_mb)
     
-    write('noisereduced/' + s , sr , y_reduced_centroid_mb )
+    if SHOWALL:
+        write('noisereduced/' + s , sr , y_reduced_centroid_mb )
+    else:
+        write('temp/' + s , sr , y_reduced_centroid_mb )
 
     fil = pydub.AudioSegment(
         y_reduced_centroid_mb.tostring(),
@@ -257,19 +242,18 @@ for s in samples:
         channels=1
     )
 
-    dif = TARGET_DBFS - fil.dBFS
+    dif = constants.TARGET_DBFS - fil.dBFS
     normalized = fil.apply_gain(dif)
 
     normalized.export('wtf/' + s, format="wav")
 
 
-
-
-
-
-
 # Normalization
-targetFolder = 'noisereduced'
+if SHOWALL:
+    targetFolder = 'noisereduced'
+else:
+    targetFolder = 'temp'
+
 TARGET_DBFS = -20
 
 toBePreprocessed = []
@@ -295,8 +279,12 @@ for s in samples:
     dif = TARGET_DBFS - fil.dBFS
     normalized = fil.apply_gain(dif)
 
-    normalized.export("toBeSplit/" + s, format="wav")
-    
+    if SHOWALL:
+        normalized.export("toBeSplit/" + s, format="wav")
+    else:
+        # TODO: do delete everything in temp
+        normalized.export("temp/" + s, format="wav")
+
     # print('+++++++++++')
     # print(sr)
     # normalized_sound = match_target_amplitude(audio_segment, -20.0)
@@ -304,7 +292,10 @@ for s in samples:
     
 
 # set to target folder that contains audio files to be split
-toBeSplitFolder = 'toBeSplit'
+if SHOWALL:
+    toBeSplitFolder = 'toBeSplit'
+else:
+    toBeSplitFolder = 'temp'
 
 toBeSplitItems = []
 toBeSplitItems = listdir(toBeSplitFolder)
