@@ -10,7 +10,8 @@ import pysndfx
 
 from scipy.io.wavfile import read
 from scipy.io.wavfile import write
-from os import listdir
+import os
+import shutil
 
 from io import BytesIO
 import constants
@@ -23,7 +24,43 @@ import constants
 # http://dsp.stackexchange.com/search?q=noise+reduction/
 
 # turn to true to see all outputs
-SHOWALL = False
+
+import sys
+
+def deleteFolders(folderNames):
+    for folder in folderNames:
+        if os.path.exists(folder):
+            shutil.rmtree(folder)
+    return
+
+def makeFolders(folderNames):
+    for folder in folderNames:
+        if not os.path.exists(folder):
+            os.mkdir(folder)
+    return
+
+foldersIfShowAll = ['noisereduced','toBeSplit','data','wtf']
+foldersIfNotShowAll = ['temp','data']
+
+# TODO make the logic for automaking/autodeleting folders
+if len(sys.argv) > 1:
+    if str(sys.argv[1]) == "showall":
+        SHOWALL = True
+        deleteFolders(foldersIfNotShowAll)
+        makeFolders(foldersIfShowAll)
+        print("Showing all output")
+    else:
+        SHOWALL = False
+        deleteFolders(foldersIfShowAll)
+        makeFolders(foldersIfNotShowAll)
+        print("not showing all output")
+else:
+    SHOWALL = False
+    deleteFolders(foldersIfShowAll)
+    makeFolders(foldersIfNotShowAll)
+    print("not showing all output")
+    
+
 '''------------------------------------
 FILE READER:
     receives filename,
@@ -61,9 +98,11 @@ def reduce_noise_centroid_mb(y, sr):
     cent_cleaned = librosa.feature.spectral_centroid(y=y_cleaned, sr=sr)
     # another centroid analysis but on the cleaned output
     columns, rows = cent_cleaned.shape
-    print("cent_cleaned_shape")
-    print(cent_cleaned)
-    print(cent_cleaned.shape)
+    
+    # print("cent_cleaned_shape")
+    # print(cent_cleaned)
+    # print(cent_cleaned.shape)
+
     # column: 1 column probably; row: x number of rows (samples)
     boost_h = math.floor(rows/3*2)      # high freq?    
     boost_l = math.floor(rows/6)        # low freq?
@@ -120,21 +159,21 @@ def calc_distances(sound_file):
     # END 
 
 
-    print("processing " , fileName)
+    print("splitting **" , fileName, "**")
     
     fs, data = read(sound_file)
     data_size = len(data)
 
-    print("data_size",data_size)
+    # print("data_size",data_size)
     
     
     FOCUS_SIZE = int(constants.SECONDS * fs)
     OFFSET = int(0.5 * fs)
 
-    print("fs",fs)
-    print("data",data)
-    print("FOCUS_SIZE", FOCUS_SIZE)
-    print("\n")
+    # print("fs",fs)
+    # print("data",data)
+    # print("FOCUS_SIZE", FOCUS_SIZE)
+    # print("\n")
 
     focuses = []
     distances = []
@@ -147,7 +186,7 @@ def calc_distances(sound_file):
 
     while idx < len(data):
         if ((data[idx] > constants.MIN_VAL)):
-            print("value",data[idx]) 
+            # print("value",data[idx]) 
             has_barks_inside = True
             mean_idx = idx + FOCUS_SIZE // 2
             focuses.append(float(mean_idx) / data_size)
@@ -156,11 +195,11 @@ def calc_distances(sound_file):
                 actual_focus = focuses[-1]
                 distances.append(actual_focus - last_focus)
 
-            print("index",idx) 
+            # print("index",idx) 
             print("found a peak in second", idx/fs)
-            print("jumping to", idx + FOCUS_SIZE)
-            print("space in seconds", (idx/fs)-(previdx/fs))
-            print("\n")
+            # print("jumping to", idx + FOCUS_SIZE)
+            # print("space in seconds", (idx/fs)-(previdx/fs))
+            # print("\n")
                 
             previdx = idx
             idx += FOCUS_SIZE
@@ -181,10 +220,10 @@ def calc_distances(sound_file):
     if has_barks_inside:
         split.append(data[startidx:len(data)])
 
-    print (focuses)
-    print(len(distances) + 1 , "barks detected")
-    print("length of split ", len(split))
-    print(split)
+    # print (focuses)
+    # print(len(distances) + 1 , "barks detected")
+    # print("length of split ", len(split))
+    # print(split)
 
     for num in range(len(split)):
         write('data/split-' + fileName + '-' + str(num) + '.wav',fs,split[num])
@@ -204,7 +243,7 @@ def calc_distances(sound_file):
 targetFolder = 'raw'
 
 toBePreprocessed = []
-toBePreprocessed = listdir(targetFolder)
+toBePreprocessed = os.listdir(targetFolder)
 samples = []
 
 # filtering the list for wav files
@@ -213,18 +252,20 @@ for s in toBePreprocessed:
     if container == 'wav':
         samples.append(s)
 
+
 # noise reduction/normalization
+print("Doing noise reduction...")
 for s in samples:
     filePath = str(targetFolder) + '/' + str(s)
-    print(filePath)
+    # print(filePath)
 
     # reading a file
     filename = filePath
     y, sr = read_file(filename)
-    print("analyzing " , filename)
-    print("y" , y)
-    print("y shape" , y.shape)
-    print("sample rate" , sr)
+    print(filename)
+    # print("y" , y)
+    # print("y shape" , y.shape)
+    # print("sample rate" , sr)
 
     y_reduced_centroid_mb = reduce_noise_centroid_mb(y, sr)
 
@@ -257,7 +298,7 @@ else:
 TARGET_DBFS = -20
 
 toBePreprocessed = []
-toBePreprocessed = listdir(targetFolder)
+toBePreprocessed = os.listdir(targetFolder)
 samples = []
 
 # filtering the list for wav files
@@ -266,7 +307,9 @@ for s in toBePreprocessed:
     if container == 'wav':
         samples.append(s)
 
+
 # normalization
+print("Doing normalization...")
 for s in samples:
     filePath = str(targetFolder) + '/' + str(s)
     print(filePath)
@@ -298,7 +341,7 @@ else:
     toBeSplitFolder = 'temp'
 
 toBeSplitItems = []
-toBeSplitItems = listdir(toBeSplitFolder)
+toBeSplitItems = os.listdir(toBeSplitFolder)
 finalItems = []
 
 # filtering the list for wav files

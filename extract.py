@@ -174,7 +174,7 @@ for recording in range(len(allData)):
     
     # set a variable to have the reference to the object
     current = allData[recording]
-    key = list(current.keys())[recording]
+    key = list(current.keys())[0]
 
     print("-------------------------------------")
     print("Processing **" + str(key) + "** recording")
@@ -213,14 +213,14 @@ for recording in range(len(allData)):
         # calculating length
         dataLength = len(currentSequence['data'][0])
         sampleRate = currentSequence['sr']
-        print("currentSequence data length: " + str(dataLength))
-        print("sample rate: " + str(sampleRate))
+        # print("currentSequence data length: " + str(dataLength))
+        # print("sample rate: " + str(sampleRate))
         length = dataLength/sampleRate
         tempRow['bark_length'] = length
 
         # calculating interbark interval
         ibi = calc_distances(currentSequence['data'],currentSequence['sr'])
-        print(ibi)
+        # print(ibi)
         tempRow['interbark_interval'] = ibi
 
         tempRow['aggressive'] = classif

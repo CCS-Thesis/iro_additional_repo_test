@@ -4,5 +4,6 @@
 /wtf/*
 /temp/*
 /__pycache__/*
+/raw/*
 
 output.csv
