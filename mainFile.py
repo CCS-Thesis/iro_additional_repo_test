@@ -2,9 +2,8 @@ import librosa
 import numpy as np
 import math
 # import python_speech_features
-import scipy as sp
+# import scipy as sp
 
-# from pydub import AudioSegment
 import pydub
 import pysndfx
 
@@ -13,7 +12,6 @@ from scipy.io.wavfile import write
 import os
 import shutil
 
-from io import BytesIO
 import constants
 
 # http://python-speech-features.readthedocs.io/en/latest/

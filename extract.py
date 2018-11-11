@@ -1,15 +1,9 @@
 import librosa
 import numpy as np
 
-import math
+#import scipy as sp
 
-# import python_speech_features
-import scipy as sp
-
-# from pydub import AudioSegment
 import pydub
-
-from scipy.io.wavfile import read
 
 import os
 import csv
