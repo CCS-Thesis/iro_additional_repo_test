@@ -21,10 +21,8 @@ import constants
 
 # http://dsp.stackexchange.com/search?q=noise+reduction/
 
-# turn to true to see all outputs
-
 import sys
-
+# functions that will delete/create folders
 def deleteFolders(folderNames):
     for folder in folderNames:
         if os.path.exists(folder):
@@ -37,10 +35,11 @@ def makeFolders(folderNames):
             os.mkdir(folder)
     return
 
+# foldernames in that will be used when doing showall and not showall
 foldersIfShowAll = ['noisereduced','toBeSplit','data','wtf']
 foldersIfNotShowAll = ['temp','data']
 
-# TODO make the logic for automaking/autodeleting folders
+# checks the arguments sent if 'showall' is used
 if len(sys.argv) > 1:
     if str(sys.argv[1]) == "showall":
         SHOWALL = True
@@ -74,6 +73,11 @@ def read_file(file_name):
 
     return y, sr
 
+'''------------------------------------
+NOISE REDUCTION:
+    receives audio time series (y) , sample rate (sr)
+    returns (y_clean_boosted) as audio time series
+------------------------------------'''
 def reduce_noise_centroid_mb(y, sr):
 
     cent = librosa.feature.spectral_centroid(y=y, sr=sr)
@@ -129,24 +133,22 @@ def trim_silence(y):
     return y_trimmed, trimmed_length
 
 
-'''------------------------------------
-AUDIO ENHANCER:
-    receives an audio matrix,
-    returns the same matrix after audio manipulation
-------------------------------------'''
-def enhance(y):
-    apply_audio_effects = pysndfx.AudioEffectsChain().lowshelf(gain=10.0, frequency=260, slope=0.1).reverb(reverberance=25, hf_damping=5, room_scale=5, stereo_depth=50, pre_delay=20, wet_gain=0, wet_only=False)#.normalize()
-    y_enhanced = apply_audio_effects(y)
-
-    return y_enhanced
+# '''------------------------------------
+# AUDIO ENHANCER:
+#     receives an audio matrix,
+#     returns the same matrix after audio manipulation
+# ------------------------------------'''
+# def enhance(y):
+#     apply_audio_effects = pysndfx.AudioEffectsChain().lowshelf(gain=10.0, frequency=260, slope=0.1).reverb(reverberance=25, hf_damping=5, room_scale=5, stereo_depth=50, pre_delay=20, wet_gain=0, wet_only=False)#.normalize()
+#     y_enhanced = apply_audio_effects(y)
+#     return y_enhanced
 
 '''------------------------------------
 SPLITTING ALGORITHM:
     recieves sound files,
-    outputs splits on folder named 'data'
+    outputs splits on folder named 'data' as audio files
 ------------------------------------'''
-
-def calc_distances(sound_file):
+def doTheSplit(sound_file):
 
     # PROCESS OF EXTRACTING THE FILENAME FROM THE SOUND_FILE STRING
     # removes the container for getting the filename string for output later
@@ -163,7 +165,6 @@ def calc_distances(sound_file):
     data_size = len(data)
 
     # print("data_size",data_size)
-    
     
     FOCUS_SIZE = int(constants.SECONDS * fs)
     OFFSET = int(0.5 * fs)
@@ -204,8 +205,6 @@ def calc_distances(sound_file):
             dead_air = 0
             
         else:
-            dead_air += 1
-            idx += 1
             if (dead_air/fs) > constants.SECONDS_UNTIL_NEXT_BARK_SEQUENCE:
                 print("dead air exceeded ", constants.SECONDS_UNTIL_NEXT_BARK_SEQUENCE)
                 if has_barks_inside:
@@ -213,6 +212,10 @@ def calc_distances(sound_file):
                 startidx = idx
                 dead_air = 0
                 has_barks_inside = False
+            else:
+                dead_air += 1
+            idx += 1
+
 
     # to add the last bark sequence
     if has_barks_inside:
@@ -229,7 +232,6 @@ def calc_distances(sound_file):
     return distances  
 
 
-
 '''------------------------------------
  S T A R T 
     O F 
@@ -237,7 +239,7 @@ def calc_distances(sound_file):
  (AKA MAIN FUNCTION)
 ------------------------------------'''
 
-# Noise Reduction
+# Start with Noise Reduction
 targetFolder = 'raw'
 
 toBePreprocessed = []
@@ -274,6 +276,8 @@ for s in samples:
     else:
         write('temp/' + s , sr , y_reduced_centroid_mb )
 
+    # --NR ENDS HERE--
+    # following is the in-one-go attempt
     fil = pydub.AudioSegment(
         y_reduced_centroid_mb.tostring(),
         frame_rate=sr,
@@ -305,7 +309,6 @@ for s in toBePreprocessed:
     if container == 'wav':
         samples.append(s)
 
-
 # normalization
 print("Doing normalization...")
 for s in samples:
@@ -323,14 +326,7 @@ for s in samples:
     if SHOWALL:
         normalized.export("toBeSplit/" + s, format="wav")
     else:
-        # TODO: do delete everything in temp
         normalized.export("temp/" + s, format="wav")
-
-    # print('+++++++++++')
-    # print(sr)
-    # normalized_sound = match_target_amplitude(audio_segment, -20.0)
-    # normalized_sound.export("ffprobe/" + filename, format="wav")
-    
 
 # set to target folder that contains audio files to be split
 if SHOWALL:
@@ -348,9 +344,9 @@ for s in toBeSplitItems:
     if container == 'wav':
         finalItems.append(s)
 
-# the real splitting
+# Splitting
 for s in finalItems:
     filePath = str(toBeSplitFolder) + '/' + str(s)   
-    calc_distances(filePath)
+    doTheSplit(filePath)
 
 print("Done!")
