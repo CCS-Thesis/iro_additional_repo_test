@@ -1,5 +1,6 @@
 import librosa
 import numpy as np
+
 import math
 # import python_speech_features
 # import scipy as sp
@@ -37,7 +38,7 @@ def makeFolders(folderNames):
 
 # foldernames in that will be used when doing showall and not showall
 foldersIfShowAll = ['noisereduced','toBeSplit','data','wtf']
-foldersIfNotShowAll = ['temp','data']
+foldersIfNotShowAll = ['temp','data','wtf']
 
 # checks the arguments sent if 'showall' is used
 if len(sys.argv) > 1:
@@ -131,17 +132,6 @@ def trim_silence(y):
     trimmed_length = librosa.get_duration(y) - librosa.get_duration(y_trimmed)
 
     return y_trimmed, trimmed_length
-
-
-# '''------------------------------------
-# AUDIO ENHANCER:
-#     receives an audio matrix,
-#     returns the same matrix after audio manipulation
-# ------------------------------------'''
-# def enhance(y):
-#     apply_audio_effects = pysndfx.AudioEffectsChain().lowshelf(gain=10.0, frequency=260, slope=0.1).reverb(reverberance=25, hf_damping=5, room_scale=5, stereo_depth=50, pre_delay=20, wet_gain=0, wet_only=False)#.normalize()
-#     y_enhanced = apply_audio_effects(y)
-#     return y_enhanced
 
 '''------------------------------------
 SPLITTING ALGORITHM:
