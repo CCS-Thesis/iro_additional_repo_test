@@ -1,0 +1,27 @@
+NOTE: WHOLE PROCESS WILL NEED INTERNET; FAST, PREFERRABLY
+
+Install Python
+
+if python doesn't run, install vc_redist.x64
+
+Install pip (get-pip.py) (WILL NEED INTERNET)
+Install virtualenv (WILL NEED INTERNET)
+	> pip install virtualenv
+
+install ffmpeg
+add to PATH 
+
+install sox
+add to PATH
+
+create a virtual environment	[virtualenv <name>]
+workon/activate venv		[workon <name>]
+install dependencies		[pip install -r requirements.txt]
+
+run
+
+order of files:
+> MainFile.py
+	- contains noise reduction, normalization, splitting
+> extract.py
+	- constains parameter extraction
