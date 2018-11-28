@@ -15,14 +15,8 @@ import shutil
 
 import constants
 
-# http://python-speech-features.readthedocs.io/en/latest/
-# https://github.com/jameslyons/python_speech_features
-# http://practicalcryptography.com/miscellaneous/machine-learning/guide-mel-frequency-cepstral-coefficients-mfccs/#deltas-and-delta-deltas
-
-
-# http://dsp.stackexchange.com/search?q=noise+reduction/
-
 import sys
+
 # functions that will delete/create folders
 def deleteFolders(folderNames):
     for folder in folderNames:
@@ -65,12 +59,8 @@ FILE READER:
     returns audio time series (y) and sampling rate of y (sr)
 ------------------------------------'''
 def read_file(file_name):
-    sample_file = file_name
-    # sample_directory = 'toBeSplit/'
-    # sample_path = sample_directory + sample_file
-
-    # generating audio time series and a sampling rate (int)
-    y, sr = librosa.load(sample_file)
+    # uses librosa to get the time series and sample rate
+    y, sr = librosa.load(file_name)
 
     return y, sr
 
@@ -87,39 +77,35 @@ def reduce_noise_centroid_mb(y, sr):
     threshold_h = np.max(cent)      # highest centroid (freq)
     threshold_l = np.min(cent)      # lowest centroid (freq)
     
+    # generating filters/"audio effects"
     less_noise = (
         pysndfx.AudioEffectsChain()
         .lowshelf(gain=-30.0, frequency=threshold_l, slope=0.5)
         .highshelf(gain=-30.0, frequency=threshold_h, slope=0.5)
         .limiter(gain=10.0)
     )
-    # generates a function that reduces noise outside threshold_l and threshold_h (from a sox wrapper (pysndfx))
-    ########################################################################################################## less_noise = AudioEffectsChain().lowpass(frequency=threshold_h).highpass(frequency=threshold_l)
-    y_cleaned = less_noise(y)
-    # function is used and is stored in y_cleaned
 
+    # applies the generated effects to the data time series
+    y_cleaned = less_noise(y)
+    
     cent_cleaned = librosa.feature.spectral_centroid(y=y_cleaned, sr=sr)
     # another centroid analysis but on the cleaned output
     columns, rows = cent_cleaned.shape
-    
-    # print("cent_cleaned_shape")
-    # print(cent_cleaned)
-    # print(cent_cleaned.shape)
 
     # column: 1 column probably; row: x number of rows (samples)
     boost_h = math.floor(rows/3*2)      # high freq?    
     boost_l = math.floor(rows/6)        # low freq?
     boost = math.floor(rows/3)          # boost amount
 
-    #################################################################################################### boost_bass = pysndfx.AudioEffectsChain().lowshelf(gain=20.0, frequency=boost, slope=0.8)
     boost_bass = (
         pysndfx.AudioEffectsChain()
         .lowshelf(gain=16.0, frequency=boost_h, slope=0.5)
-    )#.lowshelf(gain=-20.0, frequency=boost_l, slope=0.8)
-    # another function generated to boost the frequency on boost_h
-    y_clean_boosted = boost_bass(y_cleaned)
-    # function is used and stored in y_clean_boosted
+    )
 
+    # applying the bass boost 
+
+    y_clean_boosted = boost_bass(y_cleaned)
+    
     return y_clean_boosted
 
 '''------------------------------------
@@ -128,7 +114,10 @@ SILENCE TRIMMER:
     returns an audio matrix with less silence and the amout of time that was trimmed
 ------------------------------------'''
 def trim_silence(y):
+    # trimming silence
     y_trimmed, index = librosa.effects.trim(y, top_db=20, frame_length=2, hop_length=500)
+    
+    # getting the trim length
     trimmed_length = librosa.get_duration(y) - librosa.get_duration(y_trimmed)
 
     return y_trimmed, trimmed_length
@@ -140,7 +129,7 @@ SPLITTING ALGORITHM:
 ------------------------------------'''
 def doTheSplit(sound_file):
 
-    # PROCESS OF EXTRACTING THE FILENAME FROM THE SOUND_FILE STRING
+    # EXTRACTING THE FILENAME FROM THE SOUND_FILE STRING
     # removes the container for getting the filename string for output later
     fileName = sound_file.split('.')[:1]
 
@@ -148,21 +137,12 @@ def doTheSplit(sound_file):
     fileName = fileName[0].split('/')[-1]
     # END 
 
-
     print("splitting **" , fileName, "**")
     
     fs, data = read(sound_file)
     data_size = len(data)
-
-    # print("data_size",data_size)
     
     FOCUS_SIZE = int(constants.SECONDS * fs)
-    OFFSET = int(0.5 * fs)
-
-    # print("fs",fs)
-    # print("data",data)
-    # print("FOCUS_SIZE", FOCUS_SIZE)
-    # print("\n")
 
     focuses = []
     distances = []
@@ -247,15 +227,11 @@ for s in toBePreprocessed:
 print("Doing noise reduction...")
 for s in samples:
     filePath = str(targetFolder) + '/' + str(s)
-    # print(filePath)
 
     # reading a file
     filename = filePath
     y, sr = read_file(filename)
     print(filename)
-    # print("y" , y)
-    # print("y shape" , y.shape)
-    # print("sample rate" , sr)
 
     y_reduced_centroid_mb = reduce_noise_centroid_mb(y, sr)
 
@@ -287,7 +263,8 @@ if SHOWALL:
 else:
     targetFolder = 'temp'
 
-TARGET_DBFS = -20
+# TARGET_DBFS = -20
+TARGET_DBFS = constants.TARGET_DBFS
 
 toBePreprocessed = []
 toBePreprocessed = os.listdir(targetFolder)

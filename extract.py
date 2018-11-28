@@ -15,12 +15,7 @@ FILE READER:
     returns audio time series (y) and sampling rate of y (sr)
 ------------------------------------'''
 def read_file(file_name):
-    sample_file = file_name
-    # sample_directory = 'toBeSplit/'
-    # sample_path = sample_directory + sample_file
-
-    # generating audio time series and a sampling rate (int)
-    y, sr = librosa.load(sample_file)
+    y, sr = librosa.load(file_name)
 
     return y, sr
 
@@ -137,18 +132,20 @@ for s in sets:
             sound = pydub.AudioSegment.from_wav(filestr)
             print(">>> got " + filestr)
             data = sound.get_array_of_samples()
-            # data = "sound.get_array_of_samples()"
             data = np.array(data)
             data = data.reshape(sound.channels, -1, order='F')
             print(data.shape)
+            
             sr = sound.frame_rate
             dbfs = sound.dBFS
+
             obj = {
                 'filename' : filename,
                 'data' : data,
                 'sr' : sr,
                 'dbfs' : dbfs
             }
+
             dataForThisSet.append(obj)
             i += 1
         except Exception as e:
@@ -175,7 +172,6 @@ for recording in range(len(allData)):
     print("What is the classification for this recording?")
     print("0 - not aggressive")
     print("1 - aggressive")
-
 
     classif = -1
     while classif not in [0,1]:
@@ -204,7 +200,7 @@ for recording in range(len(allData)):
         diffInLoudness = meanLoudness - currentSequence['dbfs']
         tempRow['perceptual_spread'] = diffInLoudness
 
-        # calculating length
+        # calculating bark length
         dataLength = len(currentSequence['data'][0])
         sampleRate = currentSequence['sr']
         # print("currentSequence data length: " + str(dataLength))
@@ -214,20 +210,12 @@ for recording in range(len(allData)):
 
         # calculating interbark interval
         ibi = calc_distances(currentSequence['data'],currentSequence['sr'])
-        # print(ibi)
+
         tempRow['interbark_interval'] = ibi
 
         tempRow['aggressive'] = classif
 
         allForExport.append(tempRow)
-
-print("-------------------------------------")
-print("-------------------------------------")
-print("-------------------------------------")
-print(allForExport)
-print("-------------------------------------")
-print("-------------------------------------")
-print("-------------------------------------")
 
 with open('output.csv', mode='w', newline='') as csv_file:
     fieldnames = ['name','perceptual_spread','bark_length','interbark_interval', 'aggressive']
