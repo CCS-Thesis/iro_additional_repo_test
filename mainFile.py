@@ -164,11 +164,7 @@ def doTheSplit(sound_file):
                 actual_focus = focuses[-1]
                 distances.append(actual_focus - last_focus)
 
-            # print("index",idx) 
             print("found a peak in second", idx/fs)
-            # print("jumping to", idx + FOCUS_SIZE)
-            # print("space in seconds", (idx/fs)-(previdx/fs))
-            # print("\n")
                 
             previdx = idx
             idx += FOCUS_SIZE
@@ -190,11 +186,6 @@ def doTheSplit(sound_file):
     # to add the last bark sequence
     if has_barks_inside:
         split.append(data[startidx:len(data)])
-
-    # print (focuses)
-    # print(len(distances) + 1 , "barks detected")
-    # print("length of split ", len(split))
-    # print(split)
 
     for num in range(len(split)):
         write('data/split-' + fileName + '-' + str(num) + '.wav',fs,split[num])
