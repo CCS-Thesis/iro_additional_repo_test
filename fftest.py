@@ -44,7 +44,7 @@ AVERAGE INTERBARK INTERVAL OBTAINER:
     receives data stream and sample rate,
     returns mean interbark interval
 ------------------------------------'''
-def calc_distances(_data, fs):
+def get_IBI(_data, fs):
     
     data = _data[0]
     data_size = len(data)
@@ -200,27 +200,37 @@ for recording in range(len(allData)):
         print("---S T A R T for", currentSequence['filename'])
 
         # transforming the data (in time domain) to frequency domain using 1DFFT
-        
+        # audio data and sample rate
         aud_data = currentSequence['data'][0]
         aud_sr = currentSequence['sr']
         print("Sample rate: ",aud_sr)
 
+        # data length
         len_data = len(aud_data)
 
+        # padding zeros into data
         data = np.zeros(2**(int(np.ceil(np.log2(len_data)))))
         data[0:len_data] = aud_data
 
+        # doing fft into the data
         fft_data = np.fft.fft(data)
 
+        # makes an array with values from parameter 1 to parameter 2 
+        # number of elements in array depends on parameter 3 
+        # to be used as "steps" for frequencies
         w = np.linspace(0, aud_sr, len(fft_data))
 
-        # First half is the real component, second half is imaginary
+        # "First half is the real component, second half is imaginary"
         fourier_to_plot = fft_data[0:len(fft_data)//2]
         w = w[0:len(fft_data)//2]
 
+        # transforms all values in fourier_to_plot to their absolute value
+        # so we can have the representation in power spectrum
         fourier_to_plot = np.abs(fourier_to_plot)
 
+        # gets the maximum index
         max_index = np.argmax(fourier_to_plot)
+        # gets the maximum value
         max = np.amax(fourier_to_plot)
 
         print(fourier_to_plot.shape)
@@ -230,14 +240,39 @@ for recording in range(len(allData)):
         print("index of max: " , max_index)
         print("value in index: " , fourier_to_plot[max_index])
 
-
+        # x is w (frequency steps)
+        # y is fourier_to_plot (amplitude values)
         plt.plot(w, fourier_to_plot)
         
+        # shows filename and labels in the plot
         plt.title(currentSequence['filename'])
         plt.xlabel('frequency')
         plt.ylabel('amplitude')
-        plt.show()
+        # plt.show()
 
+        # S T A R T 
+        # O F
+        # T H I N G S 
+        # F O R
+        # T O N E 
+        # Q U A L I T Y 
+        filtered = []
+        i = 0
+        threshold_percent_of_max = max * .5
+        for value in fourier_to_plot:
+            print("-----")
+            print(str(value))
+            print(w[i])
+            if value > threshold_percent_of_max:
+                print("exceeded max")
+                filtered.append({ w[i] : value })
+            i += 1
+
+        print("----------")
+        print(len(filtered))
+        print(filtered)
+
+        # break so only one is displayed (for now)
         break
 
         # tempRow['pitch'] = pitch
