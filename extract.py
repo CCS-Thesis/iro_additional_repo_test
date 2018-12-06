@@ -10,16 +10,6 @@ import csv
 import constants
 
 '''------------------------------------
-FILE READER:
-    receives filename,
-    returns audio time series (y) and sampling rate of y (sr)
-------------------------------------'''
-def read_file(file_name):
-    y, sr = librosa.load(file_name)
-
-    return y, sr
-
-'''------------------------------------
 AVERAGE LOUDNESS OBTAINER:
     receives object ( the array that contains all sequences ),
     returns mean loudness of the entire file ( object )
@@ -43,7 +33,7 @@ AVERAGE INTERBARK INTERVAL OBTAINER:
 ------------------------------------'''
 def get_IBI(_data, fs):
     # just reassigns the variable
-    data = _data[0]
+    data = _data
     data_size = len(data)
     # constant : size of indices to jump incase a bark is detected
     FOCUS_SIZE = int(constants.SECONDS * fs)
@@ -226,6 +216,10 @@ for recording in range(len(allData)):
         # make a temporary variable to handle the sequence data
         currentSequence = current[key][sequence]
         
+        data = currentSequence['data'][0]
+        dataLength = len(data)
+        sampleRate = currentSequence['sr']
+
         # name is the file name
         tempRow['name'] = currentSequence['filename']   
         
@@ -233,16 +227,15 @@ for recording in range(len(allData)):
         diffInLoudness = meanLoudness - currentSequence['dbfs']
         tempRow['perceptual_spread'] = diffInLoudness
 
-        # calculating bark length
-        dataLength = len(currentSequence['data'][0])
-        sampleRate = currentSequence['sr']
-        # print("currentSequence data length: " + str(dataLength))
-        # print("sample rate: " + str(sampleRate))
-        length = dataLength/sampleRate
-        tempRow['bark_length'] = length
+        # # calculating bark length
+        # sampleRate = currentSequence['sr']
+        # # print("currentSequence data length: " + str(dataLength))
+        # # print("sample rate: " + str(sampleRate))
+        # length = dataLength/sampleRate
+        # tempRow['bark_length'] = length
 
         # calculating interbark interval
-        ibi = get_IBI(currentSequence['data'],currentSequence['sr'])
+        ibi = get_IBI(data,sr)
 
         tempRow['interbark_interval'] = ibi
 

@@ -1,6 +1,7 @@
 '''------------------------------------
 CONSTANTS FOR THE ENTIRE PROJECT
 ------------------------------------'''
+
 '''------------------------------------
 CONSTANTS FOR SPLITTING
 ------------------------------------'''
@@ -22,3 +23,9 @@ CONSTANTS FOR NORMALIZATION
 ------------------------------------'''
 
 TARGET_DBFS = -20
+
+'''------------------------------------
+CONSTANTS FOR FEATURE EXTRACTION
+------------------------------------'''
+# in decimal format
+PERCENT_OF_MAX = .5
