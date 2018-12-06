@@ -77,7 +77,7 @@ def reduce_noise_centroid_mb(y, sr):
     threshold_h = np.max(cent)      # highest centroid (freq)
     threshold_l = np.min(cent)      # lowest centroid (freq)
     
-    # generating filters/"audio effects"
+    # generating filters/"audio effects" (modifying the audio)
     less_noise = (
         pysndfx.AudioEffectsChain()
         .lowshelf(gain=-30.0, frequency=threshold_l, slope=0.5)
@@ -93,8 +93,8 @@ def reduce_noise_centroid_mb(y, sr):
     columns, rows = cent_cleaned.shape
 
     # column: 1 column probably; row: x number of rows (samples)
-    boost_h = math.floor(rows/3*2)      # high freq?    
-    boost_l = math.floor(rows/6)        # low freq?
+    boost_h = math.floor(rows/3*2)      # high freq  
+    boost_l = math.floor(rows/6)        # low freq
     boost = math.floor(rows/3)          # boost amount
 
     boost_bass = (
@@ -102,7 +102,7 @@ def reduce_noise_centroid_mb(y, sr):
         .lowshelf(gain=16.0, frequency=boost_h, slope=0.5)
     )
 
-    # applying the bass boost 
+    # applying a bass boost 
 
     y_clean_boosted = boost_bass(y_cleaned)
     
@@ -135,45 +135,46 @@ def doTheSplit(sound_file):
 
     # removes the directories from the string
     fileName = fileName[0].split('/')[-1]
-    # END 
 
     print("splitting **" , fileName, "**")
     
+    # reads the sound file and gets the sample rate (fs) and time series (data)
     fs, data = read(sound_file)
-    data_size = len(data)
     
+    # value in which indices are "skipped" when a bark is detected
     FOCUS_SIZE = int(constants.SECONDS * fs)
 
-    focuses = []
-    distances = []
-    previdx = 0
     startidx = 0
+
+    # iterator variable
     idx = 0
+
+    # to contain the audio series to be split
     split = []
+    
+    # amount of indices when no barks were detected
+    # useful for estimating when a bark sequence ends
     dead_air = 0
+
+    # a boolean "flag" that is used for when it's the last bark sequence in a recording
     has_barks_inside = False
 
     while idx < len(data):
+        # when the value in the current index exceeds the preset value
         if ((data[idx] > constants.MIN_VAL)):
-            # print("value",data[idx]) 
             has_barks_inside = True
-            mean_idx = idx + FOCUS_SIZE // 2
-            focuses.append(float(mean_idx) / data_size)
-            if len(focuses) > 1:
-                last_focus = focuses[-2]
-                actual_focus = focuses[-1]
-                distances.append(actual_focus - last_focus)
 
             print("found a peak in second", idx/fs)
                 
-            previdx = idx
             idx += FOCUS_SIZE
             dead_air = 0
             
         else:
+            # if dead air exceeds the bark sequence timeout
             if (dead_air/fs) > constants.SECONDS_UNTIL_NEXT_BARK_SEQUENCE:
                 print("dead air exceeded ", constants.SECONDS_UNTIL_NEXT_BARK_SEQUENCE)
                 if has_barks_inside:
+                    # adds the time series into the 'split' array for exporting
                     split.append(data[startidx:idx])
                 startidx = idx
                 dead_air = 0
@@ -187,10 +188,11 @@ def doTheSplit(sound_file):
     if has_barks_inside:
         split.append(data[startidx:len(data)])
 
+    # exporting the split time series into separate audio files
     for num in range(len(split)):
         write('data/split-' + fileName + '-' + str(num) + '.wav',fs,split[num])
 
-    return distances  
+    return 
 
 
 '''------------------------------------
@@ -233,20 +235,6 @@ for s in samples:
     else:
         write('temp/' + s , sr , y_reduced_centroid_mb )
 
-    # --NR ENDS HERE--
-    # following is the in-one-go attempt
-    fil = pydub.AudioSegment(
-        y_reduced_centroid_mb.tostring(),
-        frame_rate=sr,
-        sample_width=y_reduced_centroid_mb.dtype.itemsize,
-        channels=1
-    )
-
-    dif = constants.TARGET_DBFS - fil.dBFS
-    normalized = fil.apply_gain(dif)
-
-    normalized.export('wtf/' + s, format="wav")
-
 
 # Normalization
 if SHOWALL:
@@ -254,7 +242,6 @@ if SHOWALL:
 else:
     targetFolder = 'temp'
 
-# TARGET_DBFS = -20
 TARGET_DBFS = constants.TARGET_DBFS
 
 toBePreprocessed = []
@@ -273,14 +260,19 @@ for s in samples:
     filePath = str(targetFolder) + '/' + str(s)
     print(filePath)
 
-    # reading a file
+    # re-assigning the filepath
     filename = filePath
 
+    # initializing an AudioSegment
     fil = pydub.AudioSegment.from_wav(filename)
 
+    # gets the difference between the target loudness and the loudness of the current audio file
     dif = TARGET_DBFS - fil.dBFS
+
+    # applying gain based on the difference in loudness
     normalized = fil.apply_gain(dif)
 
+    # exports
     if SHOWALL:
         normalized.export("toBeSplit/" + s, format="wav")
     else:
@@ -304,7 +296,10 @@ for s in toBeSplitItems:
 
 # Splitting
 for s in finalItems:
-    filePath = str(toBeSplitFolder) + '/' + str(s)   
+    # reconstructing the file paths
+    filePath = str(toBeSplitFolder) + '/' + str(s)
+
+    # starts splitting   
     doTheSplit(filePath)
 
 print("Done!")
