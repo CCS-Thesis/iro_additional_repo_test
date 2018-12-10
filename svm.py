@@ -5,6 +5,11 @@ import constants as c
 
 if len(sys.argv) > 1:
     csv_file = sys.argv[1]
+    try:
+        data = pd.read_csv(csv_file)
+    except Exception as e:
+        print("Please input the correct .CSV file.")
+        exit()
 else:
     print("Please include the path to the csv file (output.csv) in the arguments")
     exit()
