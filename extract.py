@@ -234,6 +234,26 @@ for recording in range(len(allData)):
         # length = dataLength/sampleRate
         # tempRow['bark_length'] = length
 
+        ##################################################################
+
+        audio = pydub.AudioSegment(
+            data=data.tobytes(),
+            sample_width=2,
+            frame_rate=sampleRate,
+            channels=1
+        )
+
+        chunks = pydub.silence.split_on_silence(audio,
+            min_silence_len = 100,
+
+            silence_thresh = -19,
+            keep_silence = 100
+        )
+        for i , chunk in enumerate(chunks):
+            print(len(chunk))
+            chunk.export('wtf/seq_' + str(i+1) + '_number_' + str(recording) + '.wav', format="wav")
+        ##################################################################
+
         # calculating interbark interval
         ibi = get_IBI(data,sr)
 
