@@ -2,8 +2,6 @@ import librosa
 import numpy as np
 
 import math
-# import python_speech_features
-# import scipy as sp
 
 import pydub
 import pysndfx

@@ -81,6 +81,77 @@ def get_IBI(_data, fs):
 
     return mean
 
+'''------------------------------------
+LOUDNESS EXTRACTOR:
+    receives frequency domain data and maximum detected frequency,
+    returns the "rougness" of the data
+------------------------------------'''
+def get_roughness(fftData, max):
+    # to contain the points above a percentage of max
+    filtered = []
+
+    # used as a link to obtain the frequencies
+    i = 0
+    
+    # value used for "filtering" the points in the freq. domain
+    threshold_percent_of_max = max * constants.PERCENT_OF_MAX
+    
+    # iterates through all the values in fftData
+    for value in fftData:
+        # a check if the value is higher than the preset percentage of max and that the value is not the max value
+        if (value > threshold_percent_of_max and value != max):
+            # adds the value and its corresponding frequency into the 'filtered' array
+            filtered.append({ 'value' : value , 'freq' : w[i] })
+        i += 1
+
+    # summation
+    sum = 0.0
+    for value in filtered:
+        sum += value['value']
+    
+    # getting the mean roughness of the points
+    temp_roughness = sum / float(len(filtered))
+    
+    # getting the roughness
+    roughness = temp_roughness / max
+    
+    return roughness
+
+'''------------------------------------
+FOURIER TRANSFORM:
+    receives data stream and sample rate,
+    returns amplitudes (fourier_to_plot) and corresponding frequencies (w)
+------------------------------------'''
+def doFFT(data, sampleRate):
+    # transforming the data (in time domain) to frequency domain using 1DFFT
+    # audio data and sample rate
+    aud_data = data
+    aud_sr = sampleRate
+
+    # data length
+    len_data = len(aud_data)
+
+    # padding zeros into data
+    data = np.zeros(2**(int(np.ceil(np.log2(len_data)))))
+    data[0:len_data] = aud_data
+
+    # doing fft into the data
+    fft_data = np.fft.fft(data)
+
+    # makes an array with values from parameter 1 to parameter 2 
+    # number of elements in array depends on parameter 3 
+    # to be used as "steps" for frequencies
+    w = np.linspace(0, aud_sr, len(fft_data))
+
+    # "First half is the real component, second half is imaginary"
+    fourier_to_plot = fft_data[0:len(fft_data)//2]
+    w = w[0:len(fft_data)//2]
+
+    # transforms all values in fourier_to_plot to their absolute value
+    # so we can have the representation in power spectrum
+    fourier_to_plot = np.abs(fourier_to_plot)
+
+    return fourier_to_plot, w
 
 # -----------------------------------------------------------------------------------------------------------------------------------------
 # -----------------------------------------------------------------------------------------------------------------------------------------
@@ -222,49 +293,90 @@ for recording in range(len(allData)):
 
         # name is the file name
         tempRow['name'] = currentSequence['filename']   
+        print("---S T A R T for", currentSequence['filename'])
         
         # calculating perceptual spread
         diffInLoudness = meanLoudness - currentSequence['dbfs']
         tempRow['perceptual_spread'] = diffInLoudness
 
-        # # calculating bark length
-        # sampleRate = currentSequence['sr']
-        # # print("currentSequence data length: " + str(dataLength))
-        # # print("sample rate: " + str(sampleRate))
-        # length = dataLength/sampleRate
-        # tempRow['bark_length'] = length
-
-        ##################################################################
-
+        # calculating bark length
+        # initializing a pydub AudioSegment using the array
         audio = pydub.AudioSegment(
             data=data.tobytes(),
-            sample_width=2,
+            sample_width=4,
             frame_rate=sampleRate,
             channels=1
         )
 
+        # splits the AudioSegment into "chunks" of barks
         chunks = pydub.silence.split_on_silence(audio,
             min_silence_len = 100,
 
             silence_thresh = -19,
             keep_silence = 100
         )
+
+        # summation of bark length
+        bl = 0.0
         for i , chunk in enumerate(chunks):
             print(len(chunk))
-            chunk.export('wtf/seq_' + str(i+1) + '_number_' + str(recording) + '.wav', format="wav")
+            bl = bl + float(len(chunk) / sampleRate)
+            chunk.export('wtf/seq_' + str(recording) + '_number_' + str(i+1) + '.wav', format="wav")
+        
+        # getting the average bark length
+        try:
+            bark_len = bl / float(len(chunks))
+        except Exception as e:
+            bark_len = 0
+            
+        tempRow['bark_length'] = bark_len
+
         ##################################################################
 
         # calculating interbark interval
         ibi = get_IBI(data,sr)
-
         tempRow['interbark_interval'] = ibi
+
+        # - - FREQUENCY DOMAIN FEATURE EXTRACTION FOLLOWS - -
+
+        # DOING FFT
+        fftData, w = doFFT(data, sr)
+        
+        # gets the maximum index
+        max_index = np.argmax(fftData)
+        # gets the maximum value
+        max = np.amax(fftData)
+
+        # gets the corresponding frequency with the highest amplitude
+        pitch = w[max_index] 
+
+        tempRow['pitch'] = pitch
+
+        # # --- FOR VISUALIZATION PURPOSES ONLY ---
+
+        # # x is w (frequency steps)
+        # # y is fftData (amplitude values)
+        # plt.plot(w, fftData)
+        
+        # # shows filename and labels in the plot
+        # plt.title(currentSequence['filename'])
+        # plt.xlabel('frequency')
+        # plt.ylabel('amplitude')
+        # #plt.show()
+
+        # # --- FOR VISUALIZATION PURPOSES ONLY ---
+
+        # obtaining tone quality/roughness
+        roughness = get_roughness(fftData, max)
+        
+        tempRow['roughness'] = roughness
 
         tempRow['aggressive'] = classif
 
         allForExport.append(tempRow)
 
 with open('output.csv', mode='w', newline='') as csv_file:
-    fieldnames = ['name','perceptual_spread','bark_length','interbark_interval', 'aggressive']
+    fieldnames = ['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch','aggressive']
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
     writer.writeheader()
