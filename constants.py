@@ -29,3 +29,11 @@ CONSTANTS FOR FEATURE EXTRACTION
 ------------------------------------'''
 # in decimal format
 PERCENT_OF_MAX = .5
+
+
+'''------------------------------------
+CONSTANTS FOR SVM PORTION
+------------------------------------'''
+# ONLY CHANGE TRAIN_PERCENT
+TRAIN_PERCENT = .5
+TEST_PERCENT = 1 - TRAIN_PERCENT
