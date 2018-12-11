@@ -17,28 +17,27 @@ else:
 
 data = pd.read_csv(csv_file)
 
-print(data)
-print(data.shape)
-
-train = c.TRAIN_PERCENT * data.shape[0]
-test = c.TEST_PERCENT * data.shape[0]
+print(str(c.TRAIN_PERCENT * 100) + "%" + " used for training" )
+train = int(c.TRAIN_PERCENT * data.shape[0])
 
 # to remove an attribute
 # data.drop('attrib', axis = 1)
-
-print(data.dtypes)
 
 # shuffling the data
 data = data.sample(frac=1).reset_index(drop=True)
 
 # x is features
 # y is classes
-for_testing = data[:train]
-features = for_testing.drop(['aggressive'], axis=1)
-classes = for_testing[['aggressive']]
+for_training = data[:train]
+features = for_training.drop(['name','aggressive'], axis=1)
+classes = for_training[['aggressive']]
 
-# svc = svm.SVC(kernel='rbf', C=1,gamma='auto').fit(x, y)
+for_testing = data[train:]
+test_features = for_testing.drop(['name','aggressive'], axis=1)
+test_classes = for_testing[['aggressive']]
 
-print(for_testing)
-print(features)
-print(classes)
+svc = svm.SVC(kernel='rbf', C=1,gamma='auto').fit(features, classes.values.ravel())
+
+acc = svc.score(test_features,test_classes.values.ravel())
+acc = acc * 100
+print("Accu: " + str(acc) + "%")
