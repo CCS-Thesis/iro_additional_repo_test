@@ -313,7 +313,7 @@ for recording in range(len(allData)):
             min_silence_len = 100,
 
             silence_thresh = -19,
-            keep_silence = 100
+            keep_silence = 50
         )
 
         # summation of bark length
