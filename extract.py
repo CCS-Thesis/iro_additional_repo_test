@@ -284,6 +284,7 @@ for recording in range(len(allData)):
     for sequence in range(len(current[key])):
         # make a temporary row
         tempRow = {}
+        
         # make a temporary variable to handle the sequence data
         currentSequence = current[key][sequence]
         
@@ -328,7 +329,7 @@ for recording in range(len(allData)):
             bark_len = bl / float(len(chunks))
         except Exception as e:
             bark_len = 0
-            
+
         tempRow['bark_length'] = bark_len
 
         ##################################################################
