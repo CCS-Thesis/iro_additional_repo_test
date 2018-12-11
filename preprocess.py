@@ -213,6 +213,12 @@ for s in toBePreprocessed:
     if container == 'wav':
         samples.append(s)
 
+# clears the temp folder
+for root, dirs, files in os.walk('temp'):
+    for f in files:
+        os.unlink(os.path.join(root, f))
+    for d in dirs:
+        shutil.rmtree(os.path.join(root, d))
 
 # noise reduction/normalization
 print("Doing noise reduction...")

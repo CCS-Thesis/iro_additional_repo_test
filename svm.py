@@ -7,6 +7,10 @@ import constants as c
 if len(sys.argv) > 1:
     csv_file = sys.argv[1]
     try:
+        try:
+            TRAIN_PERCENT_IN_DECIMAL = float(sys.argv[2])
+        except Exception as iden:
+            TRAIN_PERCENT_IN_DECIMAL = c.TRAIN_PERCENT 
         data = pd.read_csv(csv_file)
     except Exception as e:
         print("Please input the correct .CSV file.")
@@ -15,10 +19,8 @@ else:
     print("Please include the path to the csv file (output.csv) in the arguments")
     exit()
 
-data = pd.read_csv(csv_file)
-
-print(str(c.TRAIN_PERCENT * 100) + "%" + " used for training" )
-train = int(c.TRAIN_PERCENT * data.shape[0])
+print(str(TRAIN_PERCENT_IN_DECIMAL * 100) + "%" + " used for training" )
+train = int(TRAIN_PERCENT_IN_DECIMAL * data.shape[0])
 
 # to remove an attribute
 # data.drop('attrib', axis = 1)
