@@ -1,5 +1,6 @@
 import pandas as pd 
 import sys
+from sklearn import svm
 
 import constants as c
 
@@ -30,5 +31,14 @@ print(data.dtypes)
 # shuffling the data
 data = data.sample(frac=1).reset_index(drop=True)
 
-df = data.drop(['name','aggressive'], axis = 1)
-print(df)
+# x is features
+# y is classes
+for_testing = data[:train]
+features = for_testing.drop(['aggressive'], axis=1)
+classes = for_testing[['aggressive']]
+
+# svc = svm.SVC(kernel='rbf', C=1,gamma='auto').fit(x, y)
+
+print(for_testing)
+print(features)
+print(classes)

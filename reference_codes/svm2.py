@@ -11,7 +11,14 @@ y = iris.target
 # we create an instance of SVM and fit out data. We do not scale our
 # data since we want to plot the support vectors
 C = 1.0 # SVM regularization parameter
+
+# fit ( x , y )
+# x = features
+# y = classes
 svc = svm.SVC(kernel='rbf', C=1,gamma='auto').fit(X, y)
+
+# predict (  )
+
 
 # create a mesh to plot in
 x_min, x_max = X[:, 0].min() - 1, X[:, 0].max() + 1

@@ -24,8 +24,9 @@ order of files:
 > MainFile.py
 	- contains noise reduction, normalization, splitting
 > extract.py
-	- constains parameter extraction
-
+	- contains parameter extraction
+> svm.py
+	- contains svm training and testing
 
 Tested on: 
 	-> Windows 7, SP1 (UCS 103 PC)
