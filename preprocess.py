@@ -102,9 +102,9 @@ def reduce_noise_centroid_mb(y, sr):
 
     # applying a bass boost 
 
-    y_clean_boosted = boost_bass(y_cleaned)
+    # y_clean_boosted = boost_bass(y_cleaned)
     
-    return y_clean_boosted
+    return y_cleaned
 
 '''------------------------------------
 SILENCE TRIMMER:

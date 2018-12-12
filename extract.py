@@ -109,11 +109,14 @@ def get_roughness(fftData, max):
     for value in filtered:
         sum += value['value']
     
-    # getting the mean roughness of the points
-    temp_roughness = sum / float(len(filtered))
+    try:
+        # getting the mean roughness of the points
+        temp_roughness = sum / float(len(filtered))
     
-    # getting the roughness
-    roughness = temp_roughness / max
+        # getting the roughness
+        roughness = temp_roughness / max
+    except Exception as e:
+        roughness = 0
     
     return roughness
 
@@ -131,7 +134,8 @@ def doFFT(data, sampleRate):
     # data length
     len_data = len(aud_data)
 
-    # padding zeros into data
+    # padding zeros into data "zero-pad out your data to a power of 2" for faster FFT
+    # https://stackoverflow.com/a/48015264
     data = np.zeros(2**(int(np.ceil(np.log2(len_data)))))
     data[0:len_data] = aud_data
 
@@ -148,7 +152,8 @@ def doFFT(data, sampleRate):
     w = w[0:len(fft_data)//2]
 
     # transforms all values in fourier_to_plot to their absolute value
-    # so we can have the representation in power spectrum
+    # so we can have the representation in amplitude spectrum
+    # https://docs.scipy.org/doc/numpy-1.15.0/reference/routines.fft.html#implementation-details
     fourier_to_plot = np.abs(fourier_to_plot)
 
     return fourier_to_plot, w
@@ -376,6 +381,7 @@ for recording in range(len(allData)):
 
         allForExport.append(tempRow)
 
+print('saving...')
 with open('output.csv', mode='w', newline='') as csv_file:
     fieldnames = ['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch','aggressive']
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
@@ -385,3 +391,4 @@ with open('output.csv', mode='w', newline='') as csv_file:
         writer.writerow(row)
 
 print('success')
+print('output saved as output.csv')
