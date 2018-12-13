@@ -35,8 +35,8 @@ def makeFolders(folderNames):
     return
 
 # foldernames in that will be used when doing showall and not showall
-foldersIfShowAll = ['noisereduced','toBeSplit','data','wtf']
-foldersIfNotShowAll = ['temp','data','wtf']
+foldersIfShowAll = ['noisereduced','toBeSplit','data']
+foldersIfNotShowAll = ['temp','data']
 
 # checks the arguments sent if 'showall' is used
 if len(sys.argv) > 1:

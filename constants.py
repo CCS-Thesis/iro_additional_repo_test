@@ -6,7 +6,7 @@ CONSTANTS FOR THE ENTIRE PROJECT
 CONSTANTS FOR SPLITTING
 ------------------------------------'''
 # threshold to detect a bark
-# this big ass value is because of the output of normalization
+# this value is because of the output of normalization
 VALUE = 1000000000
 MULTIPLIER = 1
 MIN_VAL = VALUE * MULTIPLIER

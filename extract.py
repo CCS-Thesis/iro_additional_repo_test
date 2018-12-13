@@ -329,7 +329,6 @@ for recording in range(len(allData)):
         for i , chunk in enumerate(chunks):
             print(len(chunk))
             bl = bl + float(len(chunk) / sampleRate)
-            chunk.export('wtf/seq_' + str(recording) + '_number_' + str(i+1) + '.wav', format="wav")
         
         # getting the average bark length
         try:
