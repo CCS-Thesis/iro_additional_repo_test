@@ -1,18 +1,24 @@
+# used in analysis (spectral centroid) and wav file reads
 import librosa
+# used in obtaining the min/max value in the analysis
 import numpy as np
-
-import math
-
+# used in normalization
 import pydub
+# used in applying effects for noise reduction
 import pysndfx
 
+# reading and writing the wav files
 from scipy.io.wavfile import read
 from scipy.io.wavfile import write
+
+# used in creating/deleting folders
 import os
 import shutil
 
+# used to obtain project constants
 import constants
 
+# used in obtaining arguments
 import sys
 
 # functions that will delete/create folders
@@ -85,24 +91,6 @@ def reduce_noise_centroid_mb(y, sr):
 
     # applies the generated effects to the data time series
     y_cleaned = less_noise(y)
-    
-    cent_cleaned = librosa.feature.spectral_centroid(y=y_cleaned, sr=sr)
-    # another centroid analysis but on the cleaned output
-    columns, rows = cent_cleaned.shape
-
-    # column: 1 column probably; row: x number of rows (samples)
-    boost_h = math.floor(rows/3*2)      # high freq  
-    boost_l = math.floor(rows/6)        # low freq
-    boost = math.floor(rows/3)          # boost amount
-
-    boost_bass = (
-        pysndfx.AudioEffectsChain()
-        .lowshelf(gain=16.0, frequency=boost_h, slope=0.5)
-    )
-
-    # applying a bass boost 
-
-    # y_clean_boosted = boost_bass(y_cleaned)
     
     return y_cleaned
 

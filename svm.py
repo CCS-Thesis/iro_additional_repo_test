@@ -1,7 +1,13 @@
+# used for csv data manipulation
 import pandas as pd 
+
+# used in obtaining arguments
 import sys
+
+# used for svm and the metrics 
 from sklearn import svm, metrics
 
+# used for getting project constants
 import constants as c
 
 # accepts arguments
@@ -25,12 +31,18 @@ else:
 
 # informative print statements
 print(str(TRAIN_PERCENT_IN_DECIMAL * 100) + "%" + " used for training" )
-print(str(data.shape[0]) + " rows in total")
+print(str(data.shape[0]) + " rows obtained.")
+class_stats = data.groupby('aggressive').size()
+print("Aggressive : " + str(class_stats[0]))
+print("Non-aggressive : " + str(class_stats[1]))
+print("Total : " + str(class_stats[0] + class_stats[1]))
 
 # number of rows to obtain for training
 train = int(TRAIN_PERCENT_IN_DECIMAL * data.shape[0])
 
+
 # shuffling the data
+print("dataset shuffled")
 data = data.sample(frac=1).reset_index(drop=True)
 
 # making subsets for training set

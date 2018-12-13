@@ -1,11 +1,13 @@
-import librosa
+# used in the fft data preparation
 import numpy as np
 
-#import scipy as sp
-
+# used in obtaining the dbfs and bark length
 import pydub
 
+# used in file enumeration
 import os
+
+# used in output of CSV
 import csv
 import constants
 
