@@ -74,7 +74,7 @@ print("Total : " + str(test_agg[0] + test_agg[1]))
 print("------------------------------------")
 
 # feeds/trains the model
-svc = svm.SVC(kernel='rbf', C=1,gamma='auto').fit(features, classes.values.ravel())
+svc = svm.SVC(kernel='rbf', C=2.5 ,gamma='auto').fit(features, classes.values.ravel())
 
 # lets the svm predict classes/values
 pred = svc.predict(test_features)
