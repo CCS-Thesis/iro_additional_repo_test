@@ -318,10 +318,10 @@ for recording in range(len(allData)):
 
         # splits the AudioSegment into "chunks" of barks
         chunks = pydub.silence.split_on_silence(audio,
-            min_silence_len = 100,
+            min_silence_len = 100,  # length in ms when a chunk is declared as a chunk
 
-            silence_thresh = -19,
-            keep_silence = 50
+            silence_thresh = -19,   # threshold in dbfs that is used to detect non-silence
+            keep_silence = 50       # amount of time in ms to keep
         )
 
         # summation of bark length
