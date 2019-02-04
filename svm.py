@@ -12,8 +12,9 @@ import constants as c
 
 # accepts arguments
 # sys.argv[1] = filepath to the output.csv
-# sys.argv[2] = percentage for training (optional)
+# sys.argv[2] = percentage for training OR output_experiment.csv(optional)
 
+EXPERIMENT = False
 if len(sys.argv) > 1:
     csv_file = sys.argv[1]
     try:
@@ -21,6 +22,12 @@ if len(sys.argv) > 1:
             TRAIN_PERCENT_IN_DECIMAL = float(sys.argv[2])
         except Exception as iden:
             TRAIN_PERCENT_IN_DECIMAL = c.TRAIN_PERCENT 
+            try:
+                data_exp = pd.read_csv(sys.argv[2])
+                EXPERIMENT = True
+                TRAIN_PERCENT_IN_DECIMAL = 1
+            except Exception as e:
+                print("Please input the correct .CSV file for experimentation.")
         data = pd.read_csv(csv_file)
     except Exception as e:
         print("Please input the correct .CSV file.")
@@ -42,15 +49,20 @@ train = int(TRAIN_PERCENT_IN_DECIMAL * data.shape[0])
 
 
 # shuffling the data
-print("dataset shuffled")
 data = data.sample(frac=1).reset_index(drop=True)
+print("dataset shuffled")
 
 # making subsets for training set
-for_training = data[:train]                                     # first 'train' number of rows
+if not EXPERIMENT:
+    for_training = data[:train]                                 # first 'train' number of rows
+else:
+    for_training = data                                         # get everything
+
 features = for_training.drop(['name','aggressive'], axis=1)     # dropping name and class
 classes = for_training[['aggressive']]                          # getting only class
 
 # display how much is aggressive, not aggressive
+# [informative print statements]
 print("------------------------------------")
 print("Training Dataset")
 agg = for_training.groupby('aggressive').size()
@@ -60,29 +72,42 @@ print("Total : " + str(agg[0] + agg[1]))
 print("------------------------------------")
 
 # making subsets for testing set
-for_testing = data[train:]                                      # rows after index 'train'
-test_features = for_testing.drop(['name','aggressive'], axis=1) # drop name and class
-test_classes = for_testing[['aggressive']]                      # get only class
+if not EXPERIMENT:
+    for_testing = data[train:]                                      # rows after index 'train'
+    test_features = for_testing.drop(['name','aggressive'], axis=1) # drop name and class
+    test_classes = for_testing[['aggressive']]                      # get only class
 
-# display how much is aggressive, not aggressive
-print("------------------------------------")
-print("Testing Dataset")
-test_agg = for_testing.groupby('aggressive').size()             # groupby to aggregate the number of aggressive/non-aggressive tuples
-print("aggressive : " + str(test_agg[0]))
-print("non-aggressive : " + str(test_agg[1]))
-print("Total : " + str(test_agg[0] + test_agg[1]))
-print("------------------------------------")
+    # display how much is aggressive, not aggressive
+    # [informative print statements]
+    print("------------------------------------")
+    print("Testing Dataset")
+    test_agg = for_testing.groupby('aggressive').size()             # groupby to aggregate the number of aggressive/non-aggressive tuples
+    print("aggressive : " + str(test_agg[0]))
+    print("non-aggressive : " + str(test_agg[1]))
+    print("Total : " + str(test_agg[0] + test_agg[1]))
+    print("------------------------------------")
+else:
+    for_testing = data_exp                                          # get everything
+    test_features = for_testing.drop(['name'], axis=1)              # drop name
 
-# feeds/trains the model
+
+# training the model
 svc = svm.SVC(kernel='rbf', C=2.5 ,gamma='auto').fit(features, classes.values.ravel())
 
 # lets the svm predict classes/values
 pred = svc.predict(test_features)
 
-print("Precision: " + str(metrics.precision_score(test_classes,pred)))
+# print("Precision: " + str(metrics.precision_score(test_classes,pred)))
 
-print("Recall: " + str(metrics.recall_score(test_classes,pred)))
+# print("Recall: " + str(metrics.recall_score(test_classes,pred)))
+if not EXPERIMENT:
+    print("Class Report:\n" + str(metrics.classification_report(test_classes,pred)))
 
-print("Confusion Matrix:\n" + str(metrics.confusion_matrix(test_classes,pred)))
+    print("Confusion Matrix:\n" + str(metrics.confusion_matrix(test_classes,pred)))
 
-print("Accuracy: " + str(metrics.accuracy_score(test_classes,pred)))
+    print("Accuracy: " + str(metrics.accuracy_score(test_classes,pred)))
+else:
+    print(pred)
+    data_exp['predicted'] = pred
+    print(str(data_exp))
+    data_exp.to_csv('classified.csv')

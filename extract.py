@@ -11,6 +11,20 @@ import os
 import csv
 import constants
 
+# used in obtaining arguments
+import sys
+
+args = list(sys.argv)
+
+if len(args) > 1:
+    if args.count("exp"):
+        print("extracting for experiment")
+        EXPERIMENT = True
+    else:
+        EXPERIMENT = False
+else:
+    print("extracting for data collection")
+
 '''------------------------------------
 AVERAGE LOUDNESS OBTAINER:
     receives object ( the array that contains all sequences ),
@@ -146,7 +160,7 @@ def doFFT(data, sampleRate):
 
     # makes an array with values from parameter 1 to parameter 2 
     # number of elements in array depends on parameter 3 
-    # to be used as "steps" for frequencies
+    # -- to be used as "steps" for frequencies --
     w = np.linspace(0, aud_sr, len(fft_data))
 
     # "First half is the real component, second half is imaginary"
@@ -158,6 +172,7 @@ def doFFT(data, sampleRate):
     # https://docs.scipy.org/doc/numpy-1.15.0/reference/routines.fft.html#implementation-details
     fourier_to_plot = np.abs(fourier_to_plot)
 
+    # returns the values (fourier_to_plot) of the corresponding frequencies (w)
     return fourier_to_plot, w
 
 # -----------------------------------------------------------------------------------------------------------------------------------------
@@ -265,22 +280,23 @@ for recording in range(len(allData)):
     current = allData[recording]
     key = list(current.keys())[0]
 
-    # getting the classification for the entire set
-    # (assumes that one set is of only one classification aggressive/non-aggressive)
-    print("-------------------------------------")
-    print("Processing **" + str(key) + "** recording")
-    print("What is the classification for this recording?")
-    print("0 - not aggressive")
-    print("1 - aggressive")
+    if not EXPERIMENT:
+        # getting the classification for the entire set
+        # (assumes that one set is of only one classification aggressive/non-aggressive)
+        print("-------------------------------------")
+        print("Processing **" + str(key) + "** recording")
+        print("What is the classification for this recording?")
+        print("0 - not aggressive")
+        print("1 - aggressive")
 
-    # error trapping such that only 0 or 1 is accepted
-    classif = -1
-    while classif not in [0,1]:
-        print("input must only be 0 or 1")
-        try:
-            classif = int(input("Class: "))
-        except Exception as e:
-            continue
+        # error trapping such that only 0 or 1 is accepted
+        classif = -1
+        while classif not in [0,1]:
+            print("input must only be 0 or 1")
+            try:
+                classif = int(input("Class: "))
+            except Exception as e:
+                continue
     print("-------------------------------------")
 
     # getting the average loudness (for perceptual spread)
@@ -377,14 +393,21 @@ for recording in range(len(allData)):
         roughness = get_roughness(fftData, max)
         
         tempRow['roughness'] = roughness
-
-        tempRow['aggressive'] = classif
+        if not EXPERIMENT:
+            tempRow['aggressive'] = classif
 
         allForExport.append(tempRow)
 
 print('saving...')
-with open('output.csv', mode='w', newline='') as csv_file:
+
+if EXPERIMENT:
+    output_filename = 'output_experiment.csv'
+    fieldnames = ['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']
+else:
+    output_filename = 'output.csv'
     fieldnames = ['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch','aggressive']
+    
+with open(output_filename, mode='w', newline='') as csv_file:
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
     writer.writeheader()
@@ -392,4 +415,4 @@ with open('output.csv', mode='w', newline='') as csv_file:
         writer.writerow(row)
 
 print('success')
-print('output saved as output.csv')
+print('output saved as ', output_filename)
