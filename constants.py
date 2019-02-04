@@ -7,7 +7,7 @@ CONSTANTS FOR SPLITTING
 ------------------------------------'''
 # threshold to detect a bark
 # this value is because of the output of normalization
-VALUE = 1000000000
+VALUE = 700000000
 MULTIPLIER = 1
 MIN_VAL = VALUE * MULTIPLIER
 
@@ -17,19 +17,16 @@ SECONDS = 0.25
 # seconds until program will record for another bark sequence
 SECONDS_UNTIL_NEXT_BARK_SEQUENCE = .5
 
-
 '''------------------------------------
 CONSTANTS FOR NORMALIZATION
 ------------------------------------'''
-
-TARGET_DBFS = -20
+TARGET_DBFS = -28
 
 '''------------------------------------
 CONSTANTS FOR FEATURE EXTRACTION
 ------------------------------------'''
 # in decimal format
 PERCENT_OF_MAX = .5
-
 
 '''------------------------------------
 CONSTANTS FOR SVM PORTION
