@@ -98,9 +98,6 @@ svc = svm.SVC(kernel='rbf', C=1.0 ,gamma='auto').fit(features, classes.values.ra
 # lets the svm predict classes/values
 pred = svc.predict(test_features)
 
-# print("Precision: " + str(metrics.precision_score(test_classes,pred)))
-
-# print("Recall: " + str(metrics.recall_score(test_classes,pred)))
 if not EXPERIMENT:
     
     print("Confusion Matrix:\n" + str(metrics.confusion_matrix(test_classes,pred)))

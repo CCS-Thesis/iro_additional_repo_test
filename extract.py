@@ -334,6 +334,7 @@ for recording in range(len(allData)):
             channels=1
         )
 
+        # TODO: refactor
         # splits the AudioSegment into "chunks" of barks
         chunks = pydub.silence.split_on_silence(audio,
             min_silence_len = 100,  # length in ms when a chunk is declared as a chunk
