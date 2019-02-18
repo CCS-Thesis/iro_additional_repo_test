@@ -63,6 +63,7 @@ classes = for_training[['aggressive']]                          # getting only c
 
 # display how much is aggressive, not aggressive
 # [informative print statements]
+
 print("------------------------------------")
 print("Training Dataset")
 agg = for_training.groupby('aggressive').size()
@@ -92,7 +93,7 @@ else:
 
 
 # training the model
-svc = svm.SVC(kernel='rbf', C=2.5 ,gamma='auto').fit(features, classes.values.ravel())
+svc = svm.SVC(kernel='rbf', C=1.0 ,gamma='auto').fit(features, classes.values.ravel())
 
 # lets the svm predict classes/values
 pred = svc.predict(test_features)
@@ -101,8 +102,7 @@ pred = svc.predict(test_features)
 
 # print("Recall: " + str(metrics.recall_score(test_classes,pred)))
 if not EXPERIMENT:
-    print("Class Report:\n" + str(metrics.classification_report(test_classes,pred)))
-
+    
     print("Confusion Matrix:\n" + str(metrics.confusion_matrix(test_classes,pred)))
 
     print("Accuracy: " + str(metrics.accuracy_score(test_classes,pred)))
