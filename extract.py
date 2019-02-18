@@ -16,6 +16,8 @@ import sys
 
 args = list(sys.argv)
 
+EXPERIMENT = False
+
 if len(args) > 1:
     if args.count("exp"):
         print("extracting for experiment")

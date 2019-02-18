@@ -35,7 +35,7 @@ def makeFolders(folderNames):
     return
 
 # foldernames in that will be used when doing showall and not showall
-foldersIfShowAll = ['noisereduced','toBeSplit','data']
+foldersIfShowAll = ['normalized','toBeSplit','data']
 foldersIfNotShowAll = ['temp','data']
 
 # checks the arguments sent if 'showall' is used
@@ -150,7 +150,7 @@ def doTheSplit(sound_file):
         if ((data[idx] > constants.MIN_VAL)):
             has_barks_inside = True
 
-            print("found a peak in second", idx/fs)
+            # print("found a peak in second", idx/fs)
                 
             idx += FOCUS_SIZE
             dead_air = 0
@@ -158,7 +158,7 @@ def doTheSplit(sound_file):
         else:
             # if dead air exceeds the bark sequence timeout
             if (dead_air/fs) > constants.SECONDS_UNTIL_NEXT_BARK_SEQUENCE:
-                print("dead air exceeded ", constants.SECONDS_UNTIL_NEXT_BARK_SEQUENCE)
+                # print("dead air exceeded ", constants.SECONDS_UNTIL_NEXT_BARK_SEQUENCE)
                 if has_barks_inside:
                     # adds the time series into the 'split' array for exporting
                     split.append(data[startidx:idx])
@@ -212,45 +212,34 @@ for root, dirs, files in os.walk('temp'):
     for d in dirs:
         shutil.rmtree(os.path.join(root, d))
 
-# noise reduction/normalization
-print("Doing noise reduction...")
-for s in samples:
-    filePath = str(targetFolder) + '/' + str(s)
+# ****************************************************************************************
+# ****************************************************************************************
+# ****************************************************************************************
+# Normalization First 
+# ****************************************************************************************
+# ****************************************************************************************
+# ****************************************************************************************
+# noise reduction
+# print("Doing noise reduction...")
+# for s in samples:
+#     filePath = str(targetFolder) + '/' + str(s)
 
-    # reading a file
-    filename = filePath
-    y, sr = read_file(filename)
-    print(filename)
+#     # reading a file
+#     filename = filePath
+#     y, sr = read_file(filename)
+#     print(filename)
 
-    y_reduced_centroid_mb = reduce_noise_centroid_mb(y, sr)
+#     y_reduced_centroid_mb = reduce_noise_centroid_mb(y, sr)
 
-    y_reduced_centroid_mb, time_trimmed = trim_silence(y_reduced_centroid_mb)
+#     y_reduced_centroid_mb, time_trimmed = trim_silence(y_reduced_centroid_mb)
     
-    if SHOWALL:
-        write('noisereduced/' + s , sr , y_reduced_centroid_mb )
-    else:
-        write('temp/' + s , sr , y_reduced_centroid_mb )
-
-
-# Normalization
-if SHOWALL:
-    targetFolder = 'noisereduced'
-else:
-    targetFolder = 'temp'
+#     if SHOWALL:
+#         write('noisereduced/' + s , sr , y_reduced_centroid_mb )
+#     else:
+#         write('temp/' + s , sr , y_reduced_centroid_mb )
 
 TARGET_DBFS = constants.TARGET_DBFS
 
-toBePreprocessed = []
-toBePreprocessed = os.listdir(targetFolder)
-samples = []
-
-# filtering the list for wav files
-for s in toBePreprocessed:
-    container = s.split('.')[-1]
-    if container == 'wav':
-        samples.append(s)
-
-# normalization
 print("Doing normalization...")
 for s in samples:
     filePath = str(targetFolder) + '/' + str(s)
@@ -270,10 +259,81 @@ for s in samples:
 
     # exports
     if SHOWALL:
-        normalized.export("toBeSplit/" + s, format="wav")
+        normalized.export("normalized/" + s, format="wav")
     else:
         normalized.export("temp/" + s, format="wav")
 
+# ****************************************************************************************
+# ****************************************************************************************
+# ****************************************************************************************
+# Noise Reduction
+# ****************************************************************************************
+# ****************************************************************************************
+# ****************************************************************************************
+# Normalization
+if SHOWALL:
+    targetFolder = 'normalized'
+else:
+    targetFolder = 'temp'
+
+
+toBePreprocessed = []
+toBePreprocessed = os.listdir(targetFolder)
+samples = []
+
+# filtering the list for wav files
+for s in toBePreprocessed:
+    container = s.split('.')[-1]
+    if container == 'wav':
+        samples.append(s)
+
+# for s in samples:
+#     filePath = str(targetFolder) + '/' + str(s)
+#     print(filePath)
+
+#     # re-assigning the filepath
+#     filename = filePath
+
+#     # initializing an AudioSegment
+#     fil = pydub.AudioSegment.from_wav(filename)
+
+#     # gets the difference between the target loudness and the loudness of the current audio file
+#     dif = TARGET_DBFS - fil.dBFS
+
+#     # applying gain based on the difference in loudness
+#     normalized = fil.apply_gain(dif)
+
+#     # exports
+#     if SHOWALL:
+#         normalized.export("toBeSplit/" + s, format="wav")
+#     else:
+#         normalized.export("temp/" + s, format="wav")
+
+print("Doing noise reduction...")
+for s in samples:
+    filePath = str(targetFolder) + '/' + str(s)
+
+    # reading a file
+    filename = filePath
+    y, sr = read_file(filename)
+    print(filename)
+
+    y_reduced_centroid_mb = reduce_noise_centroid_mb(y, sr)
+
+    y_reduced_centroid_mb, time_trimmed = trim_silence(y_reduced_centroid_mb)
+    
+    if SHOWALL:
+        write('toBeSplit/' + s , sr , y_reduced_centroid_mb )
+    else:
+        write('temp/' + s , sr , y_reduced_centroid_mb )
+
+# ****************************************************************************************
+# ****************************************************************************************
+# ****************************************************************************************
+# S P L I T T I N G  S T A R T S 
+# ****************************************************************************************
+# ****************************************************************************************
+# ****************************************************************************************
 # set to target folder that contains audio files to be split
 if SHOWALL:
     toBeSplitFolder = 'toBeSplit'
@@ -298,4 +358,13 @@ for s in finalItems:
     # starts splitting   
     doTheSplit(filePath)
 
+    # reads the sound file and gets the sample rate (fs) and time series (data)
+    # fs, data = read(filePath)
+    # print("**************************************************************")
+    # print("**************************************************************")
+    # print(filePath)
+    # print("**************************************************************")
+    # print("**************************************************************")
+    # for i in range(len(data)):
+    #     print(data[i])
 print("Done!")
