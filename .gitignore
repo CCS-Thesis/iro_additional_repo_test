@@ -4,7 +4,12 @@
 /wtf/*
 /temp/*
 /__pycache__/*
+/normalized/*
 /raw/*
 
 output.csv
 constants.pyc
+classified.csv
+output.csv.bak
+preprocess-inverted.py
+splitting.py
