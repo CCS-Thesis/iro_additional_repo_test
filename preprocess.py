@@ -192,7 +192,6 @@ def doTheSplit(sound_file):
 ----------------------------------------------------------------------------------------------------------------------------------------------------
 ----------------------------------------------------------------------------------------------------------------------------------------------------'''
 
-# Start with Noise Reduction
 targetFolder = 'raw'
 
 toBePreprocessed = []
@@ -219,24 +218,6 @@ for root, dirs, files in os.walk('temp'):
 # ****************************************************************************************
 # ****************************************************************************************
 # ****************************************************************************************
-# noise reduction
-# print("Doing noise reduction...")
-# for s in samples:
-#     filePath = str(targetFolder) + '/' + str(s)
-
-#     # reading a file
-#     filename = filePath
-#     y, sr = read_file(filename)
-#     print(filename)
-
-#     y_reduced_centroid_mb = reduce_noise_centroid_mb(y, sr)
-
-#     y_reduced_centroid_mb, time_trimmed = trim_silence(y_reduced_centroid_mb)
-    
-#     if SHOWALL:
-#         write('noisereduced/' + s , sr , y_reduced_centroid_mb )
-#     else:
-#         write('temp/' + s , sr , y_reduced_centroid_mb )
 
 TARGET_DBFS = constants.TARGET_DBFS
 
@@ -287,28 +268,6 @@ for s in toBePreprocessed:
     if container == 'wav':
         samples.append(s)
 
-# for s in samples:
-#     filePath = str(targetFolder) + '/' + str(s)
-#     print(filePath)
-
-#     # re-assigning the filepath
-#     filename = filePath
-
-#     # initializing an AudioSegment
-#     fil = pydub.AudioSegment.from_wav(filename)
-
-#     # gets the difference between the target loudness and the loudness of the current audio file
-#     dif = TARGET_DBFS - fil.dBFS
-
-#     # applying gain based on the difference in loudness
-#     normalized = fil.apply_gain(dif)
-
-#     # exports
-#     if SHOWALL:
-#         normalized.export("toBeSplit/" + s, format="wav")
-#     else:
-#         normalized.export("temp/" + s, format="wav")
-
 print("Doing noise reduction...")
 for s in samples:
     filePath = str(targetFolder) + '/' + str(s)
@@ -357,14 +316,5 @@ for s in finalItems:
 
     # starts splitting   
     doTheSplit(filePath)
-
-    # reads the sound file and gets the sample rate (fs) and time series (data)
-    # fs, data = read(filePath)
-    # print("**************************************************************")
-    # print("**************************************************************")
-    # print(filePath)
-    # print("**************************************************************")
-    # print("**************************************************************")
-    # for i in range(len(data)):
-    #     print(data[i])
+    
 print("Done!")
