@@ -7,7 +7,9 @@ CONSTANTS FOR SPLITTING
 ------------------------------------'''
 # threshold to detect a bark
 # this value is because of the output of normalization
-VALUE = 700000000
+#VALUE = 700000000
+VALUE = 2250000000
+
 MULTIPLIER = .00000000008
 
 MIN_VAL = VALUE * MULTIPLIER

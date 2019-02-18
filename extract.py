@@ -138,6 +138,35 @@ def get_roughness(fftData, max):
     
     return roughness
 
+def FFT_vectorized(x):
+    """A vectorized, non-recursive version of the Cooley-Tukey FFT"""
+    x = np.asarray(x, dtype=float)
+    N = x.shape[0]
+
+    if np.log2(N) % 1 > 0:
+        raise ValueError("size of x must be a power of 2")
+
+    # N_min here is equivalent to the stopping condition above,
+    # and should be a power of 2
+    N_min = min(N, 32)
+    
+    # Perform an O[N^2] DFT on all length-N_min sub-problems at once
+    n = np.arange(N_min)
+    k = n[:, None]
+    M = np.exp(-2j * np.pi * n * k / N_min)
+    X = np.dot(M, x.reshape((N_min, -1)))
+
+    # build-up each level of the recursive calculation all at once
+    while X.shape[0] < N:
+        X_even = X[:, :X.shape[1] // 2]
+        X_odd = X[:, X.shape[1] //2:]
+        factor = np.exp(-1j * np.pi * np.arange(X.shape[0])
+                        / X.shape[0])[:, None]
+        X = np.vstack([X_even + factor * X_odd,
+                       X_even - factor * X_odd])
+
+    return X.ravel()
+
 '''------------------------------------
 FOURIER TRANSFORM:
     receives data stream and sample rate,
@@ -157,8 +186,37 @@ def doFFT(data, sampleRate):
     data = np.zeros(2**(int(np.ceil(np.log2(len_data)))))
     data[0:len_data] = aud_data
 
+
+    """A vectorized, non-recursive version of the Cooley-Tukey FFT"""
+
+    data = np.asarray(data, dtype=float)
+    N = data.shape[0]
+
+    if np.log2(N) % 1 > 0:
+        raise ValueError("size of x must be a power of 2")
+
+    # N_min here is equivalent to the stopping condition above,
+    # and should be a power of 2
+    N_min = min(N, 32)
+    
+    # Perform an O[N^2] DFT on all length-N_min sub-problems at once
+    n = np.arange(N_min)
+    k = n[:, None]
+    M = np.exp(-2j * np.pi * n * k / N_min)
+    X = np.dot(M, data.reshape((N_min, -1)))
+
+    # build-up each level of the recursive calculation all at once
+    while X.shape[0] < N:
+        X_even = X[:, :X.shape[1] // 2]
+        X_odd = X[:, X.shape[1] //2:]
+        factor = np.exp(-1j * np.pi * np.arange(X.shape[0])
+                        / X.shape[0])[:, None]
+        X = np.vstack([X_even + factor * X_odd,
+                       X_even - factor * X_odd])
+    
+    
     # doing fft into the data
-    fft_data = np.fft.fft(data)
+    fft_data = X.ravel()
 
     # makes an array with values from parameter 1 to parameter 2 
     # number of elements in array depends on parameter 3 
@@ -339,7 +397,7 @@ for recording in range(len(allData)):
         chunks = pydub.silence.split_on_silence(audio,
             min_silence_len = 100,  # length in ms when a chunk is declared as a chunk
 
-            silence_thresh = -19,   # threshold in dbfs that is used to detect non-silence
+            silence_thresh = -35,   # threshold in dbfs that is used to detect non-silence
             keep_silence = 50       # amount of time in ms to keep
         )
 
