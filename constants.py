@@ -7,10 +7,9 @@ CONSTANTS FOR SPLITTING
 ------------------------------------'''
 # threshold to detect a bark
 # this value is because of the output of normalization
-#VALUE = 700000000
-VALUE = 2250000000
+VALUE =    320
 
-MULTIPLIER = .00000000008
+MULTIPLIER = .001
 
 MIN_VAL = VALUE * MULTIPLIER
 
@@ -23,7 +22,7 @@ SECONDS_UNTIL_NEXT_BARK_SEQUENCE = .5
 '''------------------------------------
 CONSTANTS FOR NORMALIZATION
 ------------------------------------'''
-TARGET_DBFS = -20
+TARGET_DBFS = -17.5
 
 '''------------------------------------
 CONSTANTS FOR FEATURE EXTRACTION

@@ -84,9 +84,9 @@ def reduce_noise_centroid_mb(y, sr):
     # generating filters/"audio effects" (modifying the audio)
     less_noise = (
         pysndfx.AudioEffectsChain()
-        .lowshelf(gain=-45.0, frequency=threshold_l, slope=0.5)
-        .highshelf(gain=-30.0, frequency=threshold_h, slope=0.5)
-        .limiter(gain=10.0)
+        .lowshelf(gain=-15.0, frequency=threshold_l, slope=1.0)
+        .highshelf(gain=-15.0, frequency=threshold_h, slope=1.0)
+        .limiter(gain=-15.0)
     )
 
     # applies the generated effects to the data time series
@@ -126,7 +126,6 @@ def doTheSplit(sound_file):
     
     # reads the sound file and gets the sample rate (fs) and time series (data)
     fs, data = read(sound_file)
-    
     # value in which indices are "skipped" when a bark is detected
     FOCUS_SIZE = int(constants.SECONDS * fs)
 
@@ -150,7 +149,7 @@ def doTheSplit(sound_file):
         if ((data[idx] > constants.MIN_VAL)):
             has_barks_inside = True
 
-            # print("found a peak in second", idx/fs)
+            print("found a peak in second", idx/fs)
                 
             idx += FOCUS_SIZE
             dead_air = 0
@@ -158,7 +157,7 @@ def doTheSplit(sound_file):
         else:
             # if dead air exceeds the bark sequence timeout
             if (dead_air/fs) > constants.SECONDS_UNTIL_NEXT_BARK_SEQUENCE:
-                # print("dead air exceeded ", constants.SECONDS_UNTIL_NEXT_BARK_SEQUENCE)
+                print("dead air exceeded ", constants.SECONDS_UNTIL_NEXT_BARK_SEQUENCE)
                 if has_barks_inside:
                     # adds the time series into the 'split' array for exporting
                     split.append(data[startidx:idx])
@@ -174,9 +173,14 @@ def doTheSplit(sound_file):
     if has_barks_inside:
         split.append(data[startidx:len(data)])
 
+    print(len(split), " barks detected!")
     # exporting the split time series into separate audio files
     for num in range(len(split)):
-        write('data/split-' + fileName + '-' + str(num) + '.wav',fs,split[num])
+        try:
+            write('data/split-' + fileName + '-' + str(num) + '.wav',fs,split[num])
+        except Exception as e:
+            os.mkdir("data")
+            write('data/split-' + fileName + '-' + str(num) + '.wav',fs,split[num])
 
     return 
 

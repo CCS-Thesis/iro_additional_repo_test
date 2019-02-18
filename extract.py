@@ -83,7 +83,8 @@ def get_IBI(_data, fs):
     
     mean = 0
 
-    print (focuses)
+    print(focuses)
+    print(distances)
     print(len(distances) + 1 , "barks detected")
 
     # does a summation of all the distances
@@ -233,7 +234,7 @@ for s in toBePreprocessed:
     if container == 'wav':
         samples.append(s)
 
-print(samples)
+# print(samples)
 
 # gets the unique names of all wav files
 for s in samples:
@@ -241,7 +242,7 @@ for s in samples:
     if name not in sets:
         sets.append(name)
 
-print(sets)
+# print(sets)
 
 print("start of read")
 
