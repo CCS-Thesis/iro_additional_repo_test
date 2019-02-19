@@ -317,18 +317,13 @@ for recording in range(len(allData)):
         # (assumes that one set is of only one classification aggressive/non-aggressive)
         print("-------------------------------------")
         print("Processing **" + str(key) + "** recording")
-        print("What is the classification for this recording?")
-        print("0 - not aggressive")
-        print("1 - aggressive")
 
-        # error trapping such that only 0 or 1 is accepted
-        classif = -1
-        while classif not in [0,1]:
-            print("input must only be 0 or 1")
-            try:
-                classif = int(input("Class: "))
-            except Exception as e:
-                continue
+        s = str(key)
+        classif = s.split('_')[0]
+        if classif == 'aggr':
+            classif = 1
+        else:
+            classif = 0
     print("-------------------------------------")
 
     # getting the average loudness (for perceptual spread)
