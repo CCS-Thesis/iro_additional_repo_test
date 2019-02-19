@@ -7,6 +7,9 @@
 /normalized/*
 /raw/*
 
+*.joblib
+*.csv
+
 .DS_Store
 output.csv
 constants.pyc
