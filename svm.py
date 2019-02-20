@@ -37,7 +37,6 @@ else:
     exit()
 
 # informative print statements
-# print(str(TRAIN_PERCENT_IN_DECIMAL * 100) + "%" + " used for training" )
 print(str(data.shape[0]) + " rows obtained.")
 class_stats = data.groupby('aggressive').size()
 print("Aggressive : " + str(class_stats[1]))
@@ -50,16 +49,34 @@ train = int(TRAIN_PERCENT_IN_DECIMAL * data.shape[0])
 # shuffling the data
 data = data.sample(frac=1).reset_index(drop=True)
 print("dataset shuffled")
+
+# exports the shuffled data
 data[['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch','aggressive']].to_csv('output_shuffled.csv')
+
+
+args = list(sys.argv)
+try:
+    args.index('trainonly')
+    train_data = data
+    print("100% of " + str(csv_file) + " used for training." )
+except Exception as identifier:
+    print(str(TRAIN_PERCENT_IN_DECIMAL * 100) + "%" + " used for training. Remaining will be used for testing." )
+    # splitting to train and testing
+    train_data = data[['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch','aggressive']][:train]
+    testing_data = data[['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']][train:]
+
+    # exporting csv for testing
+    testing_data.to_csv('output_experiment.csv')
 
 # training the model
 svc = svm.SVC(kernel='linear', C=1.0 ,gamma='auto')
 # C is the penalty value 
 
 # making datasets for features and test
-_features = data[['perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']]
-_test = data[['aggressive']]
+_features = train_data[['perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']]
+_test = train_data[['aggressive']]
 
+print('Cross validating...')
 skor = cross_val_score(svc, _features, _test.values.ravel(), cv=5)
 
 print("Cross validation scores:")
