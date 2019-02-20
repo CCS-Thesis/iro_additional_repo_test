@@ -13,6 +13,10 @@ import constants as c
 # used for exporting model
 from joblib import dump
 
+# for stats
+import numpy as np
+
+from sklearn.model_selection import cross_val_score
 # accepts arguments
 # sys.argv[1] = filepath to the output.csv
 # sys.argv[2] = percentage for training (optional)
@@ -33,7 +37,7 @@ else:
     exit()
 
 # informative print statements
-print(str(TRAIN_PERCENT_IN_DECIMAL * 100) + "%" + " used for training" )
+# print(str(TRAIN_PERCENT_IN_DECIMAL * 100) + "%" + " used for training" )
 print(str(data.shape[0]) + " rows obtained.")
 class_stats = data.groupby('aggressive').size()
 print("Aggressive : " + str(class_stats[1]))
@@ -46,55 +50,31 @@ train = int(TRAIN_PERCENT_IN_DECIMAL * data.shape[0])
 # shuffling the data
 data = data.sample(frac=1).reset_index(drop=True)
 print("dataset shuffled")
-
-# making subsets for training set
-for_training = data[:train]                                     # first 'train' number of rows
-
-features = for_training.drop(['name','aggressive'], axis=1)     # dropping name and class
-classes = for_training[['aggressive']]                          # getting only class
-
-# display how much is aggressive, not aggressive
-# [informative print statements]
-
-print("------------------------------------")
-print("Training Dataset")
-agg = for_training.groupby('aggressive').size()
-print("Aggressive : " + str(agg[1]))
-print("Non-aggressive : " + str(agg[0]))
-print("Total : " + str(agg[0] + agg[1]))
-print("------------------------------------")
-
-for_testing = data[train:]                                      # rows after index 'train'
-test_features = for_testing.drop(['name','aggressive'], axis=1) # drop name and class
-test_classes = for_testing[['aggressive']]                      # get only class
-
-# display how much is aggressive, not aggressive
-# [informative print statements]
-print("------------------------------------")
-print("Testing Dataset")
-test_agg = for_testing.groupby('aggressive').size()             # groupby to aggregate the number of aggressive/non-aggressive tuples
-print("aggressive : " + str(test_agg[1]))
-print("non-aggressive : " + str(test_agg[0]))
-print("Total : " + str(test_agg[0] + test_agg[1]))
-print("------------------------------------")
+data[['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch','aggressive']].to_csv('output_shuffled.csv')
 
 # training the model
-svc = svm.SVC(kernel='linear', C=1.0 ,gamma='auto').fit(features, classes.values.ravel())
-# is the penalty value 
+svc = svm.SVC(kernel='linear', C=1.0 ,gamma='auto')
+# C is the penalty value 
 
-# lets the svm predict classes/values
-pred = svc.predict(test_features)
+# making datasets for features and test
+_features = data[['perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']]
+_test = data[['aggressive']]
 
-# maybe put some validation here if we going with validation
-print("Confusion Matrix:\n" + str(metrics.confusion_matrix(test_classes,pred)))
+skor = cross_val_score(svc, _features, _test.values.ravel(), cv=5)
 
-print("Accuracy: " + str(metrics.accuracy_score(test_classes,pred)))
+print("Cross validation scores:")
+print(str(skor))
+print("mean score: " + str(np.mean(skor)))
 
-print("Export this model? (y/n)")
+print("Is this ok? (y/n)")
 choice = str(input()).lower()
 if choice == 'y':
     print("Exporting model...")
-    dump(svc,'model.joblib')
+
+    temp_model = svm.SVC(kernel='linear', C=1.0 ,gamma='auto')
+    temp_model.fit(_features,_test.values.ravel())
+
+    dump(temp_model,'model.joblib')
 
     # # model testing
     # svm2 = load('model.joblib')

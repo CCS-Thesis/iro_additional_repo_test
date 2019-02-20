@@ -16,30 +16,31 @@ if len(sys.argv) > 1:
         model_path = sys.argv[1]
         svc = load(model_path)
     except Exception as e:
-        print("Please include the correct model")
+        print("Please include a model.")
+        exit()
     try:
         data = pd.read_csv(sys.argv[2])
     except Exception as e:
         print("Please input the correct .CSV file.")
         exit()
 else:
-    print("Please include the path to the model in the arguments")
+    print("Please include the path to the model.")
     exit()
 
 # informative print statements
 print(str(data.shape[0]) + " rows obtained.")
 
 # getting rows for testing
-for_testing = data                                              # get everything
-test_features = for_testing.drop(['name'], axis=1)              # drop name
-
+test_features = data[['perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']]              # drop name
 
 # lets the svm predict classes/values
 pred = svc.predict(test_features)
 
 print(pred)
+data = data[['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']] 
 data['predicted'] = pred
 print(str(data))
+
 
 try:
     print("Saving csv file of results...")
