@@ -93,15 +93,6 @@ if choice == 'y':
 
     dump(temp_model,'model.joblib')
 
-    # # model testing
-    # svm2 = load('model.joblib')
-    # pred2 = svm2.predict(test_features)
-
-    # print("Confusion Matrix:\n" + str(metrics.confusion_matrix(test_classes,pred2)))
-
-    # print("Accuracy: " + str(metrics.accuracy_score(test_classes,pred2)))
-
-    # print("Is this ok? (y/n)")
 
     print("Model Exported into model.joblib")
 
