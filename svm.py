@@ -38,16 +38,16 @@ else:
 
 # informative print statements
 print(str(data.shape[0]) + " rows obtained.")
-class_stats = data.groupby('aggressive').size()
-print("Aggressive : " + str(class_stats[1]))
-print("Non-aggressive : " + str(class_stats[0]))
-print("Total : " + str(class_stats[0] + class_stats[1]))
+# class_stats = data.groupby('aggressive').size()
+# print("Aggressive : " + str(class_stats[1]))
+# print("Non-aggressive : " + str(class_stats[0]))
+# print("Total : " + str(class_stats[0] + class_stats[1]))
 
 # number of rows to obtain for training
 train = int(TRAIN_PERCENT_IN_DECIMAL * data.shape[0])
 
 # shuffling the data
-data = data.sample(frac=1).reset_index(drop=True)
+# data = data.sample(frac=1).reset_index(drop=True)
 print("dataset shuffled")
 
 # exports the shuffled data
@@ -76,6 +76,9 @@ svc = svm.SVC(kernel='linear', C=1.0 ,gamma='auto')
 _features = train_data[['perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']]
 _test = train_data[['aggressive']]
 
+# test_features = data[['perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']][train:]
+# test_classes = data[['aggressive']][train:]
+
 print('Cross validating...')
 skor = cross_val_score(svc, _features, _test.values.ravel(), cv=5)
 
@@ -88,22 +91,20 @@ choice = str(input()).lower()
 if choice == 'y':
     print("Exporting model...")
 
-    temp_model = svm.SVC(kernel='linear', C=1.0 ,gamma='auto')
-    temp_model.fit(_features,_test.values.ravel())
+    svc.fit(_features,_test.values.ravel())
 
-    dump(temp_model,'model.joblib')
-
-    # # model testing
-    # svm2 = load('model.joblib')
-    # pred2 = svm2.predict(test_features)
-
-    # print("Confusion Matrix:\n" + str(metrics.confusion_matrix(test_classes,pred2)))
-
-    # print("Accuracy: " + str(metrics.accuracy_score(test_classes,pred2)))
-
-    # print("Is this ok? (y/n)")
+    dump(svc,'model.joblib')
 
     print("Model Exported into model.joblib")
+
+
+    # model testing
+    svm2 = load('model.joblib')
+    pred2 = svm2.predict(test_features)
+
+    print("Confusion Matrix:\n" + str(metrics.confusion_matrix(test_classes,pred2)))
+
+    print("Accuracy: " + str(metrics.accuracy_score(test_classes,pred2)))
 
 else:
     print("Ok")
