@@ -106,5 +106,5 @@ if choice == 'y':
     print("Model Exported into model.joblib")
 
 else:
-    print("Ok")
+    print("model not saved.")
     
