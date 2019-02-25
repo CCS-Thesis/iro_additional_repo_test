@@ -37,21 +37,12 @@ else:
 
 # informative print statements
 print(str(data.shape[0]) + " rows obtained.")
-# class_stats = data.groupby('aggressive').size()
-# print("Aggressive : " + str(class_stats[1]))
-# print("Non-aggressive : " + str(class_stats[0]))
-# print("Total : " + str(class_stats[0] + class_stats[1]))
 
 # number of rows to obtain for training
 train = int(TRAIN_PERCENT_IN_DECIMAL * data.shape[0])
 
-# shuffling the data
-# data = data.sample(frac=1).reset_index(drop=True)
-print("dataset shuffled")
-
 # exports the shuffled data
 data[['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch','aggressive']].to_csv('output_shuffled.csv')
-
 
 args = list(sys.argv)
 try:

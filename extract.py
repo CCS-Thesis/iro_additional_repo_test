@@ -444,3 +444,15 @@ with open(output_filename, mode='w', newline='') as csv_file:
 
 print('success')
 print('output saved as ', output_filename)
+
+import pandas as pd 
+
+data = pd.read_csv(output_filename)
+data = data.sample(frac=1).reset_index(drop=True)
+
+shuffled_filename = output_filename.split('.')[:1][0] +  '_shuffled.csv'
+
+data.to_csv( shuffled_filename )
+
+print('shuffled dataset saved as ', shuffled_filename )
+
