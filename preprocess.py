@@ -146,7 +146,7 @@ def doTheSplit(sound_file):
 
     while idx < len(data):
         # when the value in the current index exceeds the preset value
-        if ((data[idx] > constants.MIN_VAL)):
+        if ((data[idx] > constants.MIN_VAL_FOR_SPLITTING)):
             has_barks_inside = True
 
             print("found a peak in second", idx/fs)
