@@ -41,9 +41,6 @@ print(str(data.shape[0]) + " rows obtained.")
 # number of rows to obtain for training
 train = int(TRAIN_PERCENT_IN_DECIMAL * data.shape[0])
 
-# exports the shuffled data
-data[['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch','aggressive']].to_csv('output_shuffled.csv')
-
 args = list(sys.argv)
 try:
     args.index('trainonly')
@@ -62,17 +59,22 @@ except Exception as identifier:
 svc = svm.SVC(kernel='linear', C=1.0 ,gamma='auto')
 # C is the penalty value 
 
+val_split =  int(TRAIN_PERCENT_IN_DECIMAL * train_data.shape[0])
 # making datasets for features and test
-_features = train_data[['perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']]
-_test = train_data[['aggressive']]
+_features = train_data[['perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']][:val_split]
+_test = train_data[['aggressive']][:val_split]
 
-test_features = data[['perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']][train:]
-test_classes = data[['aggressive']][train:]
+# for validation
+test_features = train_data[['perceptual_spread','bark_length','interbark_interval','roughness', 'pitch']][val_split:]
+test_classes = train_data[['aggressive']][val_split:]
 
-# training
+print(_features.shape[0], "for training")
+print(test_features.shape[0], "for validation")
+
+# training the SVM
 svc.fit(_features,_test.values.ravel())
 
-# predicting
+# predicting results
 pred = svc.predict(test_features)
 
 print("Confusion Matrix:\n" + str(metrics.confusion_matrix(test_classes,pred)))
@@ -87,9 +89,9 @@ if choice == 'y':
     dump(svc,'model.joblib')
 
     print("Model Exported into model.joblib")
-
-
+    
     # model testing (to test if the same model has been saved)
+    print("Checking exported model...")
     svm2 = load('model.joblib')
     pred2 = svm2.predict(test_features)
 
@@ -98,5 +100,8 @@ if choice == 'y':
     print("Accuracy: " + str(metrics.accuracy_score(test_classes,pred2)))
 
 else:
+    new_data = data[['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch','aggressive']]
+    new_data = data.sample(frac=1).reset_index(drop=True)
+    new_data.to_csv('output_shuffled.csv')
     print("model not saved.")
-    
+    print("dataset", str(csv_file) ,"reshuffled")
