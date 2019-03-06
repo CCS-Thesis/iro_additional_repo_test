@@ -8,15 +8,8 @@ CONSTANTS FOR SPLITTING
 # threshold to detect a bark
 # this value is because of the output of normalization
 
-VALUE = 100000000
-VALUE2 =    0.320 #320
-
-#TODO add value
-
-MULTIPLIER = 1
-
-MIN_VAL_FOR_SPLITTING = VALUE2 * MULTIPLIER
-MIN_VAL = VALUE * MULTIPLIER
+MIN_VAL_FOR_SPLITTING =  0.190
+MIN_VAL = 100000000
 
 # amount of time to skip after detecting a bark (in seconds)
 SECONDS = 0.25
@@ -32,7 +25,7 @@ TARGET_DBFS = -17.5
 '''------------------------------------
 CONSTANTS FOR FEATURE EXTRACTION
 ------------------------------------'''
-# in decimal format
+# in decimal format [roughness formula]
 PERCENT_OF_MAX = .5
 
 '''------------------------------------

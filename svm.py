@@ -56,7 +56,7 @@ except Exception as identifier:
     testing_data.to_csv('output_experiment.csv')
 
 # training the model
-svc = svm.SVC(kernel='linear', C=1.0 ,gamma='auto')
+svc = svm.SVC(kernel='rbf', C=55.0 ,gamma='scale')
 # C is the penalty value 
 
 val_split =  int(TRAIN_PERCENT_IN_DECIMAL * train_data.shape[0])
