@@ -445,6 +445,9 @@ with open(output_filename, mode='w', newline='') as csv_file:
 print('success')
 print('output saved as ', output_filename)
 
+if EXPERIMENT:
+    exit()
+    
 import pandas as pd 
 
 data = pd.read_csv(output_filename)
