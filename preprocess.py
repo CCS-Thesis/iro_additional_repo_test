@@ -86,7 +86,7 @@ def reduce_noise_centroid_mb(y, sr):
         pysndfx.AudioEffectsChain()
         .lowshelf(gain=-15.0, frequency=threshold_l, slope=1.0)
         .highshelf(gain=-15.0, frequency=threshold_h, slope=1.0)
-        .limiter(gain=-15.0)
+        .limiter(gain=-8.0)
     )
 
     # applies the generated effects to the data time series
