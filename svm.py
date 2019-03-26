@@ -102,6 +102,6 @@ if choice == 'y':
 else:
     new_data = data[['name','perceptual_spread','bark_length','interbark_interval','roughness', 'pitch','aggressive']]
     new_data = data.sample(frac=1).reset_index(drop=True)
-    new_data.to_csv('output_shuffled.csv')
+    new_data.to_csv(csv_file)
     print("model not saved.")
     print("dataset", str(csv_file) ,"reshuffled")

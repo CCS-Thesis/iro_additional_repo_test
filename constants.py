@@ -8,7 +8,7 @@ CONSTANTS FOR SPLITTING
 # threshold to detect a bark
 # this value is because of the output of normalization
 
-MIN_VAL_FOR_SPLITTING =  0.160
+MIN_VAL_FOR_SPLITTING =  0.150
 MIN_VAL = 100000000
 
 # amount of time to skip after detecting a bark (in seconds)
